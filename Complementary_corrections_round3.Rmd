@@ -1,0 +1,84 @@
+---
+title: "Correction of sample names_Leiden and merging with sample data"
+output: html_notebook
+---
+
+
+```{r}
+work_list<- read.delim(file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed_3/Final_Data/Work_List_2.txt",na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+sample_list<- read.delim(file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed/Sample_list_with_Steno_Label.txt",na.strings="#N/A",
+              stringsAsFactors=FALSE )
+sample_list<- sample_list[, !grepl("X", colnames(sample_list))]
+
+sample_list<-merge(work_list, sample_list, by.x = "Steno_ID" ,by.y = "Short.sample.name")
+
+"0056_RHAPSODY_20180710_0089_663_1
+change in data to 0056_RHAPSODY_20180710_0089_633_1
+ 0056_RHAPSODY_20180710_0129_941_1
+change in sample list to 0056_RHAPSODY_20180710_0129_94_1
+
+0056_RHAPSODY_20180710_1060_184_1
+
+change in data to 0056_RHAPSODY_20180710_1060_194_1"
+
+Leiden_concentrations<- read.delim(file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed_3/0056--concentrations--study_samples.tsv",na.strings="#N/A",
+                                   stringsAsFactors=FALSE )
+
+## Correct naming errors
+Leiden_concentrations$Replicate.Name[Leiden_concentrations$Replicate.Name=="0056_RHAPSODY_20180710_0089_663_1"]<-"0056_RHAPSODY_20180710_0089_633_1"
+
+Leiden_concentrations$Replicate.Name[Leiden_concentrations$Replicate.Name=="0056_RHAPSODY_20180710_1060_184_1"]<-"0056_RHAPSODY_20180710_1060_194_1"
+
+sample_list$Sample_Name[sample_list$Sample_Name=="0056_RHAPSODY_20180710_0129_941_1"]<-"0056_RHAPSODY_20180710_0129_94_1"
+Leiden_concentrations[ which(Leiden_concentrations$Replicate.Name %nin% sample_list$Sample_Name) ,]
+Leiden_concentrations<-merge(sample_list, Leiden_concentrations, by.x = "Sample_Name", by.y =  "Replicate.Name")
+# Leiden_concentrations<-Leiden_concentrations[]
+ write.table( x=Leiden_concentrations,  file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed_3/Final_Data/Leiden_concentrations_sample_annotations.tsv", 
+                                      
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+
+
+Leiden_nomalized_areas<- read.delim(file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed_3/0056--normalized_peak_areas--study_samples.tsv",na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+## Correct naming errors
+Leiden_nomalized_areas$Replicate.Name[Leiden_nomalized_areas$Replicate.Name=="0056_RHAPSODY_20180710_0089_663_1"]<-"0056_RHAPSODY_20180710_0089_633_1"
+
+Leiden_nomalized_areas$Replicate.Name[Leiden_nomalized_areas$Replicate.Name=="0056_RHAPSODY_20180710_1060_184_1"]<-"0056_RHAPSODY_20180710_1060_194_1"
+
+sample_list$Sample_Name[sample_list$Sample_Name=="0056_RHAPSODY_20180710_0129_941_1"]<-"0056_RHAPSODY_20180710_0129_94_1"
+Leiden_nomalized_areas[ which(Leiden_nomalized_areas$Replicate.Name %nin% sample_list$Sample_Name) ,]
+Leiden_nomalized_areas<-merge(sample_list, Leiden_nomalized_areas, by.x = "Sample_Name", by.y =  "Replicate.Name")
+
+ write.table( x=Leiden_nomalized_areas,  file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed_3/Final_Data/Leiden_nomalized_areas_samle_annotations.tsv", 
+                                      
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+
+Leiden_raw_areas_all_samples<-read.delim(file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed/0056--peak_areas--all_samples.tsv",na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+# Leiden_raw_areas_all_samples$Replicate.Name[Leiden_raw_areas_all_samples$Replicate.Name=="0056_RHAPSODY_20180710_0089_663_1"]<-"0056_RHAPSODY_20180710_0089_633_1"
+# 
+# Leiden_raw_areas_all_samples$Replicate.Name[Leiden_raw_areas_all_samples$Replicate.Name=="0056_RHAPSODY_20180710_1060_184_1"]<-"0056_RHAPSODY_20180710_1060_194_1"
+# 
+# sample_list$Sample.Name[sample_list$Sample.Name=="0056_RHAPSODY_20180710_0129_941_1"]<-"0056_RHAPSODY_20180710_0129_94_1"
+# Leiden_raw_areas_all_samples[ which(Leiden_raw_areas_all_samples$Replicate.Name %nin% sample_list$Sample.Name) ,]
+# Leiden_raw_areas_all_samples<-merge(sample_list, Leiden_raw_areas_all_samples, by.x = "Sample.Name", by.y =  "Replicate.Name")
+# 
+#  write.table( x=Leiden_raw_areas_all_samples,  file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/Final_data/Leiden_raw_areas_all_samples_sample_annotations.tsv", 
+#                                       
+#                sep="\t",
+#                na="",
+#                row.names=FALSE,
+#                quote=FALSE )
+
+```
+

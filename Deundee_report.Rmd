@@ -1,0 +1,5287 @@
+---
+title: "RHAPSODY Leiden Samples"
+author: Ashfaq Ali (ashfaq.ali@regionh.dk)
+date: "\today"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '4'
+  pdf_document:
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '4'
+---
+
+\newpage
+
+# Data
+
+
+
+```{r Load-Data}
+Dundee_1_108<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_1_108.tsv", ### MODIFY ###
+              na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+
+
+Dundee_109_216<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_109_216.tsv",      na.strings="#N/A", stringsAsFactors=FALSE )
+                             
+Dundee_217_324<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_217_324.tsv",      na.strings="#N/A", stringsAsFactors=FALSE )
+                            
+ 
+Dundee_325_432<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_325_432.tsv", ### MODIFY ###
+              na.strings="#N/A",
+              stringsAsFactors=FALSE )
+# library(Hmisc)
+# xx<-which( Leiden_198_305$Replicate.Name %nin% Leiden_306_413$Replicate.Name)
+# Leiden_198_305<-Leiden_198_305[xx,] 
+
+Dundee_433_540<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_433_540.tsv", ### MODIFY ###
+              na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+Dundee_541_648<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_541_648.tsv", ### MODIFY ###
+              na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+Dundee_649_756<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_649_756.tsv", ### MODIFY ###
+               na.strings="#N/A",
+               stringsAsFactors=FALSE )
+  
+Dundee_757_864<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_757_864.tsv", ### MODIFY ###
+              na.strings="#N/A",
+              stringsAsFactors=FALSE )
+Dundee_865_972<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_865_972.tsv", ### MODIFY ###
+              na.strings="#N/A",
+              stringsAsFactors=FALSE )
+Dundee_973_1044<-read.delim( file="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Skyline_Output/Dendee_973_1044.tsv", ### MODIFY ###
+              na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+
+
+data <- data.loaded <- rbind(Dundee_1_108, Dundee_109_216, Dundee_217_324, Dundee_325_432, Dundee_433_540, Dundee_541_648, Dundee_649_756, Dundee_757_864, Dundee_865_972, Dundee_973_1044)
+  
+data$Precursor.Ion.Name <-replace(data$Precursor.Ion.Name, data$Precursor.Ion.Name== "GCDCA-d4 & GUDCA-d4", "GUDCA-d4")
+
+work_list<- read.delim(file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed/Work_List_2.txt",na.strings="#N/A",
+              stringsAsFactors=FALSE )
+
+sample_list<- read.delim(file="Z:/_Data/QQQ1/0056_RHAPSODY_Leiden_DCS/Processed/R_Processed/Sample_list_with_Steno_Label.txt",na.strings="#N/A",
+              stringsAsFactors=FALSE )
+sample_list<- sample_list[, !grepl("X", colnames(sample_list))]
+
+#merge(work_list, sample_list, by.x = "Steno_ID" ,by.y = "Short.sample.name")
+
+```
+
+
+```{r Load-Transition-List}
+
+transitions <- 
+  readxl::read_excel( path="Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/Pre-Processing_R2/Iion_Pairs_Bile_Acids_separated_RT_Dundee.xlsx", ### MODIFY ###
+                      skip=1 )
+
+```
+
+\newpage
+
+```{r Options}
+
+output.directory <- "Z:/_Data/QQQ1/0055_RHAPSODY_Dundee_GODARTS/Processed/R_processed/"
+
+time.format <- "%d/%m/%Y %H:%M:%S" #%m/%d/%Y %I:%M:%S %p" # "%m/%d/%Y %I:%M:%S %p" or "%d/%m/%Y %H:%M:%S"
+
+normalize.with.istds <- TRUE
+use.skyline.normalization <- FALSE
+
+accepted.calibration.Rsq <- 0.80 #changed from 0.95
+
+plot.figures <- TRUE
+
+plot.with.solvent <- FALSE
+plot.pca.with.solvent <- FALSE
+
+plot.observations <- TRUE
+plot.groups <- FALSE
+plot.curves <- TRUE
+
+plot.signal.and.bg.together <- FALSE
+sort.plots.by.R2 <- FALSE
+
+patterns.istd <- "(\\-d[0-9])|(\\-13C)|(\\-2H4)"
+
+```
+
+\newpage
+
+```{r Format-Data}
+
+data <- data[ data$"Replicate.Name" != "", ]
+
+data$"ID" <- paste( data$"Precursor.Ion.Name", 
+                    "; ",
+                    data$"Precursor.Mz", 
+                    "/",
+                    data$"Product.Mz",
+                    sep="" )
+ data$Precursor.Ion.Name <-replace(data$Precursor.Ion.Name, data$Precursor.Ion.Name== "GCDCA-d4 & GUDCA-d4", "GUDCA-d4")
+# 
+# data$Precursor.Ion.Name<-replace(data$Precursor.Ion.Name, data$Precursor.Ion.Name=="Leu & Ile" ,"Leu")
+# # Naming: ProjectNumber_BatchDate_RunNumber_SampleType_Replicate
+fnames.split <- 
+  stringr::str_split_fixed( string=data$"Replicate.Name", pattern="_", n=7 )
+
+data$"Group" <- fnames.split[ , 5 ]
+
+data$"Batch" <- 
+  stringr::str_replace( string=fnames.split[ , 3 ], pattern="ngml", replacement="" )
+
+data$"Run.Type" <- fnames.split[ , 5 ]
+data[ grepl( x=data$"Run.Type", pattern="CALIB" ), "Run.Type" ] <- "CALIBCURVE"
+
+data[ !grepl( x=data$"Run.Type", 
+              pattern="(Blank)|(CALIB)|(NIST)|(PO)|(Solvent)|(STDMIX)", 
+              ignore.case=TRUE ), 
+      "Run.Type" ] <- 
+  "Sample"
+
+data$"Preparation.Repeat" <- fnames.split[ , 6 ]
+
+data$"Acquired.Time" <- as.POSIXct( x=data$"Acquired.Time", format=time.format )
+
+data[ data$"Truncated"=="", "Truncated" ] <- NA
+data$"Truncated" <- factor( data$"Truncated", levels=c( "False", "True" ) )
+data$"User.Set.Peak" <- factor( data$"User.Set.Peak", levels=c( "FALSE", "TRUE" ) )
+
+has.concentrations <- any( grepl( x=fnames.split[ , 5 ], pattern="ngml" ) )
+
+if ( has.concentrations ) {
+  
+  tmp <- stringr::str_split_fixed( string=fnames.split[ , 5 ], pattern="-", n=2 )
+  
+  tmp <- stringr::str_replace( string=tmp[ , 2 ], pattern="ngml", replacement="" )
+  tmp[ tmp=="" ] <- NA
+  
+  tmp <- stringr::str_replace( string=tmp, pattern=",", replacement="." )
+  
+  data$"C.ngml" <- as.numeric( tmp )
+  
+} else {
+  
+  data$"C.ngml" <- NA
+  
+}
+
+# Transition list
+
+transitions$"ID" <- 
+  paste( transitions$"Precursor Name", 
+         "; ",
+         transitions$"Precursor Ion", 
+         "/",
+         transitions$"Product Ion",
+         sep="" )
+
+transitions$"Linearity range - low concentration" <- 
+  as.numeric( transitions$"Linearity range - low concentration" )
+
+transitions$"Linearity range - high concentration" <- 
+  as.numeric( transitions$"Linearity range - high concentration" )
+
+```
+
+```{r Merge-Transitions}
+
+data.skyline <- data
+
+data <- merge( x=data, y=transitions, 
+              by="ID", all.x=TRUE, all.y=FALSE, incomparables=NA )
+
+tmp <- which( data$"Qualifier transition" == "x" )
+data[ tmp, "ID" ] <- paste( data[ tmp, "ID" ], "; Q", sep="" )
+
+```
+
+\newpage
+
+```{r Normalization}
+
+data$"Area.not.normalized" <- data$"Area"
+  
+data$"Normalizer" <- rep( x=NA, times=nrow( data ) )
+
+istds <- unique( x=data$"ISTD" )
+istds <- istds[ istds!="" ]
+istds <- istds[ !is.na( istds ) ]
+
+for ( i in 1:length( istds ) ) {
+  
+  idx.found.i <- which( data$"Precursor.Ion.Name"==istds[ i ] & !is.na( data$"Area" ) )
+  
+  if ( length( idx.found.i ) > 0 ) {
+    
+    mean.i <- mean( data[ idx.found.i, "Area" ] )
+    
+    for ( j in 1:length( idx.found.i ) ) {
+      
+      targets.ij <- 
+        which( data$"ISTD"==istds[ i ] & 
+                 data$"Replicate.Name"==data[ idx.found.i[ j ], "Replicate.Name" ] )
+      
+      if ( normalize.with.istds ) {
+        
+        data[ targets.ij, "Area" ] <- 
+          data[ targets.ij, "Area" ] / data[ idx.found.i[ j ], "Area" ] * mean.i
+        
+      }
+      
+      data[ targets.ij, "Normalizer" ] <- idx.found.i[ j ]
+      
+    }
+    
+  }
+  
+}
+  
+if ( !normalize.with.istds & use.skyline.normalization ) {
+  
+  data$"Area" <- 
+    as.numeric( stringr::str_replace( string=data$"Area.Normalized", 
+                                      pattern="%", replacement="" ) )
+  
+}
+
+```
+
+\newpage
+
+```{r Standards}
+
+tmp <- unique( data[ data$"Label Type" == "light", "ID" ] )
+tmp <- tmp[ !is.na( tmp ) ]
+cor.to.istd <- rep( x=NA, times=length( tmp ) )
+names( cor.to.istd ) <- tmp
+
+for ( i in 1:length( cor.to.istd ) ) {
+  
+  tmp <- 
+    which( data$"ID"==names( cor.to.istd )[ i ] & data$"Run.Type"=="Sample" )
+  
+  cor.to.istd[ i ] <- 
+    cor( x=data[ tmp, "Area.not.normalized" ], 
+         y=data[ data[ tmp, "Normalizer" ], "Area.not.normalized" ],
+         use="pairwise.complete.obs" )
+  
+}
+
+knitr::kable( x=data.frame( Correlation=sort( cor.to.istd, decreasing=TRUE ) ), 
+              digits=4, 
+              caption="Correlation with the internal standard in sample runs." )
+
+```
+
+```{r Wide}
+
+data.plot <- data[ , c( "Replicate.Name", "ID", "Area" ) ]
+
+data.not.normalized.plot <- data[ , c( "Replicate.Name", "ID", "Area.not.normalized" ) ]
+
+RTs.plot <- data[ , c( "Replicate.Name", "ID", "Retention.Time" ) ]
+
+data.plot.wide <- 
+  reshape2::dcast( data=data.plot, 
+                   formula=Replicate.Name ~ ID, 
+                   fun.aggregate=mean,
+                   value.var="Area" )
+
+data.not.normalized.plot.wide <- 
+  reshape2::dcast( data=data.not.normalized.plot, 
+                   formula=Replicate.Name ~ ID, 
+                   fun.aggregate=mean,
+                   value.var="Area.not.normalized" )
+
+RTs.plot.wide <- 
+  reshape2::dcast( data=RTs.plot,
+                   formula=Replicate.Name ~ ID,
+                   fun.aggregate=mean,
+                   value.var="Retention.Time" )
+
+data.wide <- data.plot.wide[ , -1 ]
+rownames( data.wide ) <- data.plot.wide[ , 1 ]
+
+data.not.normalized.wide <- data.not.normalized.plot.wide[ , -1 ]
+rownames( data.not.normalized.wide ) <- data.not.normalized.plot.wide[ , 1 ]
+
+RTs.wide <- RTs.plot.wide[ , -1 ]
+rownames( RTs.wide ) <- RTs.plot.wide[ , 1 ]
+
+data.heatmap <- data.wide <- 
+  matrix( data=as.numeric( as.matrix( data.wide ) ), 
+          ncol=ncol( data.wide ), 
+          nrow=nrow( data.wide ), 
+          byrow=FALSE, 
+          dimnames=dimnames( data.wide ) )
+data.heatmap.log <- data.heatmap
+data.not.normalized.heatmap <- data.not.normalized.wide <- 
+  matrix( data=as.numeric( as.matrix( data.not.normalized.wide ) ), 
+          ncol=ncol( data.not.normalized.wide ), 
+          nrow=nrow( data.not.normalized.wide ), 
+          byrow=FALSE, 
+          dimnames=dimnames( data.not.normalized.wide ) )
+
+RTs.heatmap <- RTs.wide <- 
+  matrix( data=as.numeric( as.matrix( RTs.wide ) ), 
+          ncol=ncol( RTs.wide ), 
+          nrow=nrow( RTs.wide ), 
+          byrow=FALSE, 
+          dimnames=dimnames( RTs.wide ) )
+
+data.heatmap[ is.na( data.heatmap ) ] <- 0
+
+data.not.normalized.heatmap[ is.na( data.not.normalized.heatmap ) ] <- 0
+
+RTs.heatmap[ is.na( RTs.heatmap ) ] <- 0
+
+if ( has.concentrations ) {
+  
+  fnames.split.wide <-
+    stringr::str_split_fixed( string=rownames( data.wide ), pattern="_", n=7 )
+  
+  tmp <- stringr::str_split_fixed( string=fnames.split.wide[ , 5 ], pattern="-", n=2 )
+  
+  tmp <- stringr::str_replace( string=tmp[ , 2 ], pattern="ngml", replacement="" )
+  tmp[ tmp=="" ] <- NA
+  concentrations.wide <- as.numeric( tmp )
+  
+  linear.range.wide <- 
+    transitions[ match( x=colnames( data.wide ), table=transitions$"ID" ), 
+                 c( "Linearity range - low concentration", 
+                    "Linearity range - high concentration" ) ]
+  
+  linear.range.wide <- data.frame( linear.range.wide, check.names=FALSE )
+  rownames( linear.range.wide ) <- colnames( data.wide )
+  
+}
+
+```
+
+\newpage
+
+# Heatmap of Peak Areas
+
+## Original Scale
+
+### With Solvent Runs
+
+```{r Heatmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600}
+
+if ( nrow( data.heatmap ) < ncol( data.heatmap ) ) {
+  
+  data.heatmap.plot <- t( data.heatmap )
+  scale <- "row"
+  
+} else {
+  
+  data.heatmap.plot <- data.heatmap
+  scale <- "column"
+  
+}
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale=scale, 
+                   col=gplots::bluered( n=99 ), 
+                   trace="none", 
+                   margins=c( 10, 11 ) )
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale="none", 
+                   col=gray( level=seq( from=1, to=0, length.out=100 ) ),
+                   trace="none",
+                   margins=c( 10, 11 ) )
+
+```
+
+\newpage
+
+### Without Solvent Runs
+
+```{r Heatmap-wo-Blanks, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600}
+
+tmp <- !grepl( x=rownames( data.heatmap ), pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+
+data.heatmap.wo.blanks <- data.heatmap[ tmp, ]
+
+fnames.split.wide.wo.blanks <- fnames.split.wide[ tmp, ]
+
+if ( nrow( data.heatmap.wo.blanks ) < ncol( data.heatmap.wo.blanks ) ) {
+  
+  data.heatmap.plot <- t( data.heatmap.wo.blanks )
+  scale <- "row"
+  
+} else {
+  
+  data.heatmap.plot <- data.heatmap.wo.blanks
+  scale <- "column"
+  
+}
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale=scale, 
+                   col=gplots::bluered( n=99 ), 
+                   trace="none", 
+                   margins=c( 10, 11 ) )
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale="none", 
+                   col=gray( level=seq( from=1, to=0, length.out=100 ) ),
+                   trace="none",
+                   margins=c( 10, 11 ) )
+
+```
+
+\newpage
+
+## Logarithmic Scale
+
+### With Solvent Runs
+
+```{r Heatmap-Log, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600}
+
+data.heatmap.log <- data.heatmap
+data.not.normalized.heatmap.log <- data.not.normalized.heatmap
+
+# Local half-the-minimum imputation
+# data.heatmap.log <-
+#   apply( X=data.heatmap.log,
+#          MAR=2,
+#          FUN=function( x ) { x[ x==0 ] <- min( x[ x!=0 ] )/2; return( x ) } )
+
+# Global half-the-minimum imputation
+data.heatmap.log[ data.heatmap.log==0 ] <- min( data.heatmap.log[ data.heatmap.log!=0 ] ) / 2
+
+data.not.normalized.heatmap.log[ data.not.normalized.heatmap.log==0 ] <- 
+  min( data.not.normalized.heatmap.log[ data.not.normalized.heatmap.log!=0 ] ) / 2
+
+data.heatmap.log <- log10( data.heatmap.log )
+data.not.normalized.heatmap.log <- log10( data.not.normalized.heatmap.log )
+
+if ( nrow( data.heatmap.log ) < ncol( data.heatmap.log ) ) {
+  
+  data.heatmap.plot <- t( data.heatmap.log )
+  scale <- "row"
+  
+} else {
+  
+  data.heatmap.plot <- data.heatmap.log
+  scale <- "column"
+  
+}
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale=scale, 
+                   col=gplots::bluered( n=99 ), 
+                   trace="none", 
+                   margins=c( 10, 11 ) )
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale="none", 
+                   col=gray( level=seq( from=1, to=0, length.out=100 ) ),
+                   trace="none",
+                   margins=c( 10, 11 ),
+                   symbreaks=FALSE )
+
+```
+
+\newpage
+
+### Without Solvent Runs
+
+```{r Heatmap-Log-wo-Blanks, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600}
+
+data.heatmap.log.wo.blanks <- 
+  data.heatmap.log[ !grepl( x=rownames( data.heatmap.log ), 
+                            pattern="(Blank)|(Solvent)", 
+                            ignore.case=TRUE ), ]
+
+data.not.normalized.heatmap.log.wo.blanks <- 
+  data.not.normalized.heatmap.log[ grepl( x=rownames( data.heatmap.log ), 
+                                          pattern="(Blank)|(Solvent)", 
+                                          ignore.case=TRUE ), ]
+
+if ( nrow( data.heatmap.log.wo.blanks ) < ncol( data.heatmap.log.wo.blanks ) ) {
+  
+  data.heatmap.plot <- t( data.heatmap.log.wo.blanks )
+  scale <- "row"
+  
+} else {
+  
+  data.heatmap.plot <- data.heatmap.log.wo.blanks
+  scale <- "column"
+  
+}
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale=scale, 
+                   col=gplots::bluered( n=99 ), 
+                   trace="none", 
+                   margins=c( 10, 11 ) )
+
+gplots::heatmap.2( x=data.heatmap.plot, 
+                   scale="none", 
+                   col=gray( level=seq( from=1, to=0, length.out=100 ) ),
+                   trace="none",
+                   margins=c( 10, 11 ),
+                   symbreaks=FALSE )
+
+```
+
+
+
+\newpage
+
+
+
+# Principal Component Analysis
+
+## Peak Areas of Internal Standards
+
+* Computed on log-transformed data
+
+### With Solvent Runs
+
+#### With Loadings
+
+```{r PCA-Istds-w-Technical, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, including solvent runs, with loadings.", eval=plot.figures}
+data.heatmap.log <- data.heatmap
+data.not.normalized.heatmap.log <- data.not.normalized.heatmap
+data.pca <- data.heatmap.log
+
+is.istd <- grepl( x=colnames( data.pca ), 
+                  pattern=paste( "(", paste( istds, sep="", collapse=")|(" ), ")", sep="" ) )
+
+data.pca <- data.pca[ , is.istd ]
+
+data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+
+if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+  
+  group.pca <- 
+    apply( X=fnames.split.wide[ , c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+  
+  group.pca.all <- 
+    apply( X=fnames.split.wide[ , c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+  
+} else {
+  
+  group.pca <- group.pca.all <- fnames.split.wide[ , 5 ]
+
+}
+
+group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+group.pca <- stringr::str_replace( string=group.pca, pattern="CALIBCURVE-.+ngml", replacement="CALIBCURVE" )
+
+result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+
+if ( length( unique( group.pca ) ) > 9 ) {
+
+  tmp <- table( group.pca )
+  tmp <- names( tmp[ tmp==1 ] )
+  group.pca[ group.pca %in% tmp ] <- "Other"
+  
+  palette <- ggplot2::scale_colour_hue()
+  
+} else {
+  
+  palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+  
+}
+
+plot.ellipse <- any( table( group.pca ) > 2 )
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+
+plot.pca <- plot.pca + 
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Istds-w-Technical-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, including solvent runs, without loadings.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### All Groups Annotated
+
+```{r PCA-Istds-w-Technical-All-Groups, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, including solvent runs, without loadings and with all samples annotated.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, 
+                      circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+  ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                      hjust=0, vjust=0 )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Istds-w-Technical-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, including solvent runs, annotated by analysis order.", eval=plot.figures}
+
+group.pca <- group.pca.all <- fnames.split.wide[ , 4 ]
+
+group.pca <- as.numeric( group.pca )
+
+plot.ellipse <- FALSE
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=NULL, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE  )
+
+plot.pca <- plot.pca + 
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::geom_point( mapping=ggplot2::aes( color=group.pca ) ) +
+  ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                   midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                   name="Analysis order"  )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Concentration
+
+```{r PCA-Istds-w-Technical-Concentrations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, including solvent runs, with loadings and annotated by calibration curve concentrations.", eval=plot.figures}
+
+if ( has.concentrations ) {
+  
+  group.pca <- factor( x=concentrations.wide, levels=sort( unique( concentrations.wide ) ) )
+  group.pca <- addNA( x=group.pca, ifany=TRUE )
+  levels( group.pca )[ is.na( levels( group.pca ) ) ] <- "NA"
+  
+  if ( "NA" %in% levels( group.pca ) ) {
+    
+    palette <- c( gplots::bluered( n=nlevels( group.pca )-1 ), gray( level=0 ) )
+    
+  } else {
+    
+    palette <- gplots::bluered( n=nlevels( group.pca ) )
+    
+  }
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    ggplot2::scale_colour_manual( name="Concentration", values=palette ) +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+### Without Technical Runs
+
+* Without Blank, CALIBCURVE and Solvent runs.
+
+#### With Loadings
+
+```{r PCA-Istds, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, not including technical runs, with loadings.", eval=plot.figures}
+
+data.pca <- data.heatmap.log
+
+is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(CALIB)|(Solvent)", ignore.case=TRUE )  
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  data.pca <- data.pca[ is.included, is.istd ]
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+  
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+  
+  if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+    
+    group.pca <- 
+      apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+    
+    group.pca.all <- 
+      apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+    
+  } else {
+    
+    group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+    
+  }
+  
+  group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+  
+  result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+  
+  if ( length( unique( group.pca ) ) > 9 ) {
+    
+    tmp <- table( group.pca )
+    tmp <- names( tmp[ tmp==1 ] )
+    group.pca[ group.pca %in% tmp ] <- "Other"
+    
+    palette <- ggplot2::scale_colour_hue()
+    
+  } else {
+    
+    palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+    
+  }
+  
+  plot.ellipse <- any( table( group.pca ) > 2 )
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+  
+  plot.pca <- plot.pca + 
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Istds-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, not including technical runs, without loadings.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### All Groups Annotated
+
+```{r PCA-Istds-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, not including techinical runs, without loadings and with all samples annotated.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+    ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                        hjust=0, vjust=0 )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Istds-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, not including technical runs, without loadings and annotated by the analysis order.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 4 ]
+  
+  group.pca <- as.numeric( group.pca )
+  
+  plot.ellipse <- FALSE
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=FALSE, circle=TRUE, var.axes=FALSE  )
+  
+  plot.pca <- plot.pca + 
+    ggplot2::theme( legend.position="top" ) +
+    ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                     midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                     name="Analysis order"  )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### Annotated by Concentration
+
+```{r PCA-Istds-Concentrations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards, not including technical runs, without loadings and annotated by calibration curve concentrations.", echo=FALSE, eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  if ( has.concentrations ) {
+    
+    group.pca <- 
+      factor( x=concentrations.wide[ is.included ], 
+              levels=sort( unique( concentrations.wide[ is.included ] ) ) )
+    
+    group.pca <- addNA( x=group.pca, ifany=TRUE )
+    levels( group.pca )[ is.na( levels( group.pca ) ) ] <- "NA"
+    
+    if ( "NA" %in% levels( group.pca ) ) {
+      
+      palette <- c( gplots::bluered( n=nlevels( group.pca )-1 ), gray( level=0 ) )
+      
+    } else {
+      
+      palette <- gplots::bluered( n=nlevels( group.pca ) )
+      
+    }
+    
+    plot.pca <-
+      ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                          groups=group.pca, ellipse=plot.ellipse, 
+                          circle=TRUE, var.axes=FALSE )
+    
+    plot.pca <- plot.pca +
+      ggplot2::scale_colour_manual( name="Concentration", values=palette ) +
+      ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+    
+    print( plot.pca )
+    
+  }
+  
+}
+
+```
+
+\newpage
+
+### With Sample Runs Only
+
+* Without technical runs and pooled samples.
+
+#### With Loadings
+
+```{r PCA-Istds-Samples, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards in study samples only, with loadings.", eval=plot.figures}
+
+data.pca <- data.heatmap.log
+
+is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(CALIB)|(Solvent)|(_NIST_)|(_PO_)|(_RPO_)", ignore.case=TRUE )  
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  data.pca <- data.pca[ is.included, is.istd ]
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+  
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+  
+  if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+    
+    group.pca <- 
+      apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+    
+    group.pca.all <- 
+      apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+    
+  } else {
+    
+    group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+    
+  }
+  
+  group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+  
+  result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+  
+  if ( length( unique( group.pca ) ) > 9 ) {
+    
+    tmp <- table( group.pca )
+    tmp <- names( tmp[ tmp==1 ] )
+    group.pca[ group.pca %in% tmp ] <- "Other"
+    
+    palette <- ggplot2::scale_colour_hue()
+    
+  } else {
+    
+    palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+    
+  }
+  
+  plot.ellipse <- any( table( group.pca ) > 2 )
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+  
+  plot.pca <- plot.pca + 
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Istds-Samples-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards in study samples only, without loadings.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### All Groups Annotated
+
+```{r PCA-Istds-Samples-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards in study samples only, without loadings and with all samples annotated.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+    ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                        hjust=0, vjust=0 )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Istds-Samples-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of internal standards in study samples only, without loadings and annotated by the analysis order.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 4 ]
+  
+  group.pca <- as.numeric( group.pca )
+  
+  plot.ellipse <- FALSE
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=FALSE, circle=TRUE, var.axes=FALSE  )
+  
+  plot.pca <- plot.pca + 
+    ggplot2::theme( legend.position="top" ) +
+    ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                     midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                     name="Analysis order"  )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+## Non-Normalized Peak Areas of Metabolites
+
+* Computed on log-transformed data
+
+### With Technical Runs
+
+* With Blank, CALIBCURVE and Solvent runs.
+
+#### With Loadings
+
+```{r PCA-Mets-Not-Norm-w-Technical, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of non-normalized metabolites, including solvent runs, with loadings.", eval=plot.figures}
+
+data.pca <- data.not.normalized.heatmap.log
+
+is.istd <- 
+  grepl( x=colnames( data.pca ), 
+         pattern=paste( "(", paste( istds, sep="", collapse=")|(" ), ")", sep="" ) )
+
+data.pca <- data.pca[ , !is.istd ]
+
+data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+
+if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+  
+  group.pca <- 
+    apply( X=fnames.split.wide[ , c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+  
+  group.pca.all <- 
+    apply( X=fnames.split.wide[ , c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+  
+} else {
+  
+  group.pca <- group.pca.all <- fnames.split.wide[ , 5 ]
+
+}
+
+group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+group.pca <- stringr::str_replace( string=group.pca, pattern="CALIBCURVE-.+ngml", replacement="CALIBCURVE" )
+
+result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+
+if ( length( unique( group.pca ) ) > 9 ) {
+
+  tmp <- table( group.pca )
+  tmp <- names( tmp[ tmp==1 ] )
+  group.pca[ group.pca %in% tmp ] <- "Other"
+  
+  palette <- ggplot2::scale_colour_hue()
+  
+} else {
+  
+  palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+  
+}
+
+plot.ellipse <- any( table( group.pca ) > 2 )
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+
+plot.pca <- plot.pca + 
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Mets-Not-Norm-w-Technical-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA non-normalized of metabolites, including solvent runs, without loadings.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### All Samples Annotated
+
+```{r PCA-Not-Normalized-w-Technical-All-Groups, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA non-normalized of metabolites, including solvent runs, without loadings and with all groups annotated.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, 
+                      circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette + 
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+  ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                      hjust=0, vjust=0 )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Mets-Not-Norm-w-Technical-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of non-normalized metabolites, including solvent runs, annotated by analysis order.", eval=plot.figures}
+
+group.pca <- group.pca.all <- fnames.split.wide[ , 4 ]
+
+group.pca <- as.numeric( group.pca )
+
+plot.ellipse <- FALSE
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=FALSE, circle=TRUE, var.axes=FALSE  )
+
+plot.pca <- plot.pca + 
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                   midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                   name="Analysis order"  )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Concentration
+
+```{r PCA-Mets-Not-Norm-w-Technical-Concentrations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of non-normalized metabolites, including solvent runs and annotated by calibration curve concentrations.", eval=plot.figures}
+
+if ( has.concentrations ) {
+  
+  group.pca <- factor( x=concentrations.wide, levels=sort( unique( concentrations.wide ) ) )
+  group.pca <- addNA( x=group.pca, ifany=TRUE )
+  levels( group.pca )[ is.na( levels( group.pca ) ) ] <- "NA"
+  
+  if ( "NA" %in% levels( group.pca ) ) {
+    
+    palette <- c( gplots::bluered( n=nlevels( group.pca )-1 ), gray( level=0 ) )
+    
+  } else {
+    
+    palette <- gplots::bluered( n=nlevels( group.pca ) )
+    
+  }
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=TRUE, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    ggplot2::scale_colour_manual( name="Concentration", values=palette ) +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+### Without Technical Runs
+
+* Without Blank, CALIBCURVE and Solvent runs but with pooled runs.
+
+#### With Loadings
+
+```{r PCA-Mets-Not-Norm, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of non-normalized metabolites, not including technical runs, with loadings.", eval=plot.figures}
+
+data.pca <- data.not.normalized.heatmap.log
+
+is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(CALIB)|(Solvent)", ignore.case=TRUE )  
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  data.pca <- data.pca[ is.included, !is.istd ]
+  
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+  
+  if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+    
+    group.pca <- 
+      apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+    
+    group.pca.all <- 
+      apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+    
+  } else {
+    
+    group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+    
+  }
+  
+  group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+  
+  result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+  
+  if ( length( unique( group.pca ) ) > 9 ) {
+    
+    tmp <- table( group.pca )
+    tmp <- names( tmp[ tmp==1 ] )
+    group.pca[ group.pca %in% tmp ] <- "Other"
+    
+    palette <- ggplot2::scale_color_hue()
+    
+  } else {
+    
+    palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+    
+  }
+  
+  plot.ellipse <- any( table( group.pca ) > 2 )
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+  
+  plot.pca <- plot.pca + 
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Mets-Not-Norm-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of non-normalized metabolites, not including technical runs, without loadings.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### All Groups Annotated
+
+```{r PCA-Mets-Not-Norm-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of non-normalized metabolites, not including technical runs, without loadings and with all samples annotated.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+    ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                        hjust=0, vjust=0 )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Mets-Not-Norm-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of non-normalized metabolites, not including technical runs, without loadings and annotated by the analysis order.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 4 ]
+  
+  group.pca <- as.numeric( group.pca )
+  
+  plot.ellipse <- FALSE
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE  )
+  
+  plot.pca <- plot.pca + 
+    ggplot2::theme( legend.position="top" ) +
+    ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                     midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                     name="Analysis order"  )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+
+\newpage
+
+
+## Normalized Peak Areas of Metabolites
+
+* Computed on log-transformed data
+
+### Without Solvent Runs
+
+* Without Blank and Solvent runs but with CALIBCURVE runs.
+
+#### With Loadings
+
+```{r PCA-Mets-Norm-wo-Solvent, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, without solvent runs, with loadings.", eval=plot.figures}
+
+data.pca <- data.heatmap.log
+
+is.istd <- 
+  grepl( x=colnames( data.pca ), 
+         pattern=paste( "(", paste( istds, sep="", collapse=")|(" ), ")", sep="" ) )
+
+is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(Solvent)", ignore.case=TRUE )  
+
+data.pca <- data.pca[ is.included, !is.istd ]
+
+data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+
+if ( length( unique( fnames.split.wide[ is.included, 3 ] ) ) > 1 ) {
+  
+  group.pca <- 
+    apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+  
+  group.pca.all <- 
+    apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+  
+} else {
+  
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+
+}
+
+group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+group.pca <- stringr::str_replace( string=group.pca, pattern="CALIBCURVE-.+ngml", replacement="CALIBCURVE" )
+
+result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+
+if ( length( unique( group.pca ) ) > 9 ) {
+
+  tmp <- table( group.pca )
+  tmp <- names( tmp[ tmp==1 ] )
+  group.pca[ group.pca %in% tmp ] <- "Other"
+  
+  palette <- ggplot2::scale_color_hue()
+  
+} else {
+  
+  palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+  
+}
+
+plot.ellipse <- any( table( group.pca ) > 2 )
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+
+plot.pca <- plot.pca + 
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Mets-Norm-wo-Solvent-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, without solvent runs, without loadings.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### All Groups Annotated
+
+```{r PCA-Mets-Norm-wo-Solvent-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, without solvent runs, without loadings and with all groups annotated.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, 
+                      circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+  ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                      hjust=0, vjust=0 )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Mets-Norm-wo-Solvent-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, without solvent runs, with loadings."}
+
+group.pca <- group.pca.all <- fnames.split.wide[ is.included, 4 ]
+
+group.pca <- as.numeric( group.pca )
+
+plot.ellipse <- FALSE
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE  )
+
+plot.pca <- plot.pca + 
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                   midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                   name="Analysis order"  )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Concentration
+
+```{r PCA-Mets-Norm-wo-Solvent-Concentrations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, without solvent runs, with loadings and annotated by calibration curve concentrations.", eval=plot.figures}
+
+if ( has.concentrations ) {
+  
+  group.pca <- factor( x=concentrations.wide[ is.included ], levels=sort( unique( concentrations.wide[ is.included ] ) ) )
+  group.pca <- addNA( x=group.pca, ifany=TRUE )
+  levels( group.pca )[ is.na( levels( group.pca ) ) ] <- "NA"
+  
+  if ( "NA" %in% levels( group.pca ) ) {
+    
+    palette <- c( gplots::bluered( n=nlevels( group.pca )-1 ), gray( level=0 ) )
+    
+  } else {
+    
+    palette <- gplots::bluered( n=nlevels( group.pca ) )
+    
+  }
+  
+  plot.ellipse <- TRUE
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    ggplot2::scale_colour_manual( name="Concentration", values=palette ) +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+### Without Technical Runs
+
+* Without Blank and Solvent as well as without CALIBCURVE runs.
+
+#### With Loadings
+
+```{r PCA-Mets-Norm-Samples-And-Pools, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, not including technical runs, with loadings.", eval=plot.figures}
+
+data.pca <- data.heatmap.log
+
+is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(CALIB)|(Solvent)", ignore.case=TRUE )  
+
+data.pca <- data.pca[ is.included, !is.istd ]
+
+data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+
+if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+  
+  group.pca <- 
+    apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+  
+  group.pca.all <- 
+    apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+  
+} else {
+  
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+
+}
+
+group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+
+result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+
+if ( length( unique( group.pca ) ) > 9 ) {
+
+  tmp <- table( group.pca )
+  tmp <- names( tmp[ tmp==1 ] )
+  group.pca[ group.pca %in% tmp ] <- "Other"
+  
+  palette <- ggplot2::scale_color_hue()
+  
+} else {
+  
+  palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+  
+}
+
+plot.ellipse <- any( table( group.pca ) > 2 )
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+
+plot.pca <- plot.pca + 
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Mets-Norm-Samples-And-Pools-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, not including technical runs, without loadings.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### All Groups Annotated
+
+```{r PCA-Mets-Norm-Samples-And-Pools-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, not including technical runs, without loadings and with all samples annotated.", echo=FALSE, eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, 
+                      circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+  ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                      hjust=0, vjust=0 )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Mets-Norm-Samples-And-Pools-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites, not including technical runs, without loadings and annotated by the analysis order.", eval=plot.figures}
+  
+group.pca <- group.pca.all <- fnames.split.wide[ is.included, 4 ]
+
+group.pca <- as.numeric( group.pca )
+
+palette <- 
+  ggplot2::scale_colour_manual( 
+    name="", 
+    values=grDevices::rainbow( n=length( unique( group.pca ) ) ) )
+
+plot.ellipse <- FALSE
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE  )
+
+plot.pca <- plot.pca + 
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                   midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                   name="Analysis order"  )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+### With Pooled Samples Only
+
+* Without technical samples and study samples.
+
+#### With Loadings
+
+```{r PCA-Mets-Norm-Pools, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites in pooled samples only, with loadings.", eval=plot.figures}
+
+data.pca <- data.heatmap.log
+
+is.included <- grepl( x=rownames( data.pca ), pattern="(_PO_)|(_RPO_)", ignore.case=TRUE )  
+
+if ( any( is.included ) ) {
+
+  data.pca <- data.pca[ is.included, !is.istd, drop=FALSE ]
+  
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0, drop=FALSE ]
+  
+  if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+    
+    group.pca <- 
+      apply( X=fnames.split.wide[ is.included, c( 5, 3 ), drop=FALSE ], MAR=1, FUN=paste, collapse=";" )
+    
+    group.pca.all <- 
+      apply( X=fnames.split.wide[ is.included, c( 4, 5 ), drop=FALSE ], MAR=1, FUN=paste, collapse="_" )
+    
+  } else {
+    
+    group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+    
+  }
+  
+  group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+  
+  result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+  
+  if ( length( unique( group.pca ) ) > 9 ) {
+    
+    tmp <- table( group.pca )
+    tmp <- names( tmp[ tmp==1 ] )
+    group.pca[ group.pca %in% tmp ] <- "Other"
+    
+    palette <- ggplot2::scale_color_hue()
+    
+  } else {
+    
+    palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+    
+  }
+  
+  plot.ellipse <- any( table( group.pca ) > 2 )
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+  
+  plot.pca <- plot.pca + 
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Mets-Norm-Pools-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites in pooled samples only, without loadings.", eval=plot.figures}
+
+if ( any( is.included ) ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### All Samples Annotated
+
+```{r PCA-Mets-Norm-Pools-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of metabolites in pooled samples only, without loadings and with all groups annotated.", echo=FALSE, eval=FALSE}
+
+if ( any( is.included ) ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+    ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                        hjust=0, vjust=0 )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Mets-Norm-Pools-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites in pooled samples only, without loadings and annotated by the analysis order.", eval=plot.figures}
+  
+if ( any( is.included ) ) {
+
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 4 ]
+  
+  group.pca <- as.numeric( group.pca )
+  
+  plot.ellipse <- FALSE
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE  )
+  
+  plot.pca <- plot.pca + 
+    ggplot2::theme( legend.position="top" ) +
+    ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                     midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                     name="Analysis order"  )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+### With Study Samples Only
+
+* Without technical runs and also without pooled runs.
+
+#### With Loadings
+
+```{r PCA-Mets-Norm-Samples, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites in study samples only, with loadings.", eval=plot.figures}
+
+data.pca <- data.heatmap.log
+
+is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(CALIB)|(Solvent)|(_NIST_)|(_PO_)|(_RPO_)", ignore.case=TRUE )  
+
+if ( any( is.included ) ) {
+
+  data.pca <- data.pca[ is.included, !is.istd ]
+  
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+  
+  if ( length( unique( fnames.split.wide[ , 3 ] ) ) > 1 ) {
+    
+    group.pca <- 
+      apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+    
+    group.pca.all <- 
+      apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+    
+  } else {
+    
+    group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+    
+  }
+  
+  group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+  
+  result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+  
+  if ( length( unique( group.pca ) ) > 9 ) {
+    
+    tmp <- table( group.pca )
+    tmp <- names( tmp[ tmp==1 ] )
+    group.pca[ group.pca %in% tmp ] <- "Other"
+    
+    palette <- ggplot2::scale_color_hue()
+    
+  } else {
+    
+    palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+    
+  }
+  
+  plot.ellipse <- any( table( group.pca ) > 2 )
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+  
+  plot.pca <- plot.pca + 
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-Mets-Norm-Samples-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites in study samples only, without loadings.", eval=plot.figures}
+
+if ( any( is.included ) ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### All Samples Annotated
+
+```{r PCA-Mets-Norm-Samples-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of metabolites in study samples only, without loadings and with all groups annotated.", echo=FALSE, eval=plot.figures}
+
+if ( any( is.included ) ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+    ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                        hjust=0, vjust=0 )
+  
+  print( plot.pca )
+
+}
+
+```
+
+\newpage
+
+#### Annotated by Analysis Order
+
+```{r PCA-Mets-Norm-Samples-Analysis-Order, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of normalized metabolites in study samples only, without loadings and annotated by the analysis order.", eval=plot.figures}
+  
+if ( any( is.included ) ) {
+
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 4 ]
+  
+  group.pca <- as.numeric( group.pca )
+  
+  plot.ellipse <- FALSE
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE  )
+  
+  plot.pca <- plot.pca + 
+    ggplot2::theme( legend.position="top" ) +
+    ggplot2::scale_colour_gradient2( low="blue", mid="white", high="red", 
+                                     midpoint=mean( x=group.pca, na.rm=TRUE ), 
+                                     name="Analysis order"  )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+
+
+\newpage
+
+
+
+## Retention Times
+
+### Without Solvent Runs
+
+* Not including Blank and Solvent runs.
+
+#### With Loadings
+
+```{r PCA-RTs, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of retention times.", eval=plot.figures}
+
+data.pca <- RTs.heatmap
+
+if ( !plot.pca.with.solvent ) {
+
+  is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(Solvent)", ignore.case=TRUE )  
+  
+} else {
+  
+  is.included <- rep( x=TRUE, times=nrow( data.pca ) )
+  
+}
+
+data.pca <- data.pca[ is.included, ]
+data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+
+if ( length( unique( fnames.split.wide[ is.included, 3 ] ) ) > 1 ) {
+  
+  group.pca <- 
+    apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+  
+  group.pca.all <- 
+    apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+  
+} else {
+  
+  group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+
+}
+
+group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+group.pca <- stringr::str_replace( string=group.pca, pattern="CALIBCURVE-.+ngml", replacement="CALIBCURVE" )
+
+result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+
+if ( length( unique( group.pca ) ) > 9 ) {
+
+  tmp <- table( group.pca )
+  tmp <- names( tmp[ tmp==1 ] )
+  group.pca[ group.pca %in% tmp ] <- "Other"
+  
+  palette <- ggplot2::scale_color_hue()
+  
+} else {
+  
+  palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+  
+}
+
+plot.ellipse <- any( table( group.pca ) > 2 )
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+
+plot.pca <- plot.pca + 
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-RTs-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of retention time, without loadings.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### All Samples Annotated
+
+```{r PCA-RTs-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of retention times, without loadings and with all samples annotated.", eval=plot.figures}
+
+plot.pca <-
+  ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                      groups=group.pca, ellipse=plot.ellipse, 
+                      circle=TRUE, var.axes=FALSE )
+  
+plot.pca <- plot.pca +
+  palette +
+  ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+  ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                      hjust=0, vjust=0 )
+
+print( plot.pca )
+
+```
+
+\newpage
+
+#### Annotated by Concentration
+
+```{r PCA-RTs-Concentrations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of retention times without loadings and annotated by calibration curve concentrations.", eval=plot.figures}
+
+if ( has.concentrations ) {
+  
+  group.pca <- 
+    factor( x=concentrations.wide[ is.included ], 
+            levels=sort( unique( concentrations.wide[ is.included ] ) ) )
+  
+  group.pca <- addNA( x=group.pca, ifany=TRUE )
+  levels( group.pca )[ is.na( levels( group.pca ) ) ] <- "NA"
+  
+  if ( "NA" %in% levels( group.pca ) ) {
+    
+    palette <- c( gplots::bluered( n=nlevels( group.pca )-1 ), gray( level=0 ) )
+    
+  } else {
+    
+    palette <- gplots::bluered( n=nlevels( group.pca ) )
+    
+  }
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    ggplot2::scale_colour_manual( name="Concentration", values=palette ) +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+### Without Technical Runs
+
+* Study samples and pooled samples only.
+
+#### With Loadings
+
+```{r PCA-RTs-wo-Tech, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of retention times without technical runs.", eval=plot.figures}
+
+data.pca <- RTs.heatmap
+
+if ( !plot.pca.with.solvent ) {
+
+  is.included <- !grepl( x=rownames( data.pca ), pattern="(Blank)|(CALIB)|(Solvent)", ignore.case=TRUE )  
+  
+} else {
+  
+  is.included <- rep( x=TRUE, times=nrow( data.pca ) )
+  
+}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  data.pca <- data.pca[ is.included, ]
+  data.pca <- data.pca[ , apply( X=data.pca, MAR=2, FUN=sd ) > 0 ]
+  
+  if ( length( unique( fnames.split.wide[ is.included, 3 ] ) ) > 1 ) {
+    
+    group.pca <- 
+      apply( X=fnames.split.wide[ is.included, c( 5, 3 ) ], MAR=1, FUN=paste, collapse=";" )
+    
+    group.pca.all <- 
+      apply( X=fnames.split.wide[ is.included, c( 4, 5 ) ], MAR=1, FUN=paste, collapse="_" )
+    
+  } else {
+    
+    group.pca <- group.pca.all <- fnames.split.wide[ is.included, 5 ]
+    
+  }
+  
+  group.pca <- stringr::str_replace( string=group.pca, pattern="^[0-9]+", replacement="Sample" )
+  group.pca <- stringr::str_replace( string=group.pca, pattern="CALIBCURVE-.+ngml", replacement="CALIBCURVE" )
+  
+  result.pca <- prcomp( x=data.pca, center=TRUE, scale=TRUE )
+  
+  if ( length( unique( group.pca ) ) > 9 ) {
+    
+    tmp <- table( group.pca )
+    tmp <- names( tmp[ tmp==1 ] )
+    group.pca[ group.pca %in% tmp ] <- "Other"
+    
+    palette <- ggplot2::scale_color_hue()
+    
+  } else {
+    
+    palette <- ggplot2::scale_colour_brewer( name='', palette = "Set1" )
+    
+  }
+  
+  plot.ellipse <- any( table( group.pca ) > 2 )
+  
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE )
+  
+  plot.pca <- plot.pca + 
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+  
+}
+
+```
+
+\newpage
+
+#### Without Loadings
+
+```{r PCA-RTs-wo-Tech-No-Loadings, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of retention times without technical runs, without loadings.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+\newpage
+
+#### All Samples Annotated
+
+```{r PCA-RTs-wo-Tech-All-Annotations, fig.width=10, fig.height=9, dpi=600, out.width="\\textwidth", fig.cap="PCA of retention times without technical runs, without loadings and with all samples annotated.", eval=plot.figures}
+
+if ( length( which( is.included ) ) > 2 ) {
+
+  plot.pca <-
+    ggbiplot::ggbiplot( pcobj=result.pca, obs.scale=1, var.scale=1, 
+                        groups=group.pca, ellipse=plot.ellipse, 
+                        circle=TRUE, var.axes=FALSE )
+  
+  plot.pca <- plot.pca +
+    palette +
+    ggplot2::theme( legend.direction='horizontal', legend.position='top' ) +
+    ggplot2::geom_text( mapping=ggplot2::aes( label=group.pca.all, colour=group.pca ), 
+                        hjust=0, vjust=0 )
+  
+  print( plot.pca )
+
+}
+  
+```
+
+
+
+
+\newpage
+
+
+
+
+# Batch Effects
+
+
+
+
+```{r Batch-Effects}
+
+data.batch.effects.norm <- 
+  data.frame( Name=rownames( data.heatmap.log ), 
+              data.heatmap.log,
+              stringsAsFactors = FALSE,
+              check.names = FALSE )
+
+data.batch.effects.not.norm <- 
+  data.frame( Name=rownames( data.not.normalized.heatmap.log ), 
+              data.not.normalized.heatmap.log,
+              stringsAsFactors = FALSE,
+              check.names = FALSE )
+
+data.batch.effects <- merge( x=data.batch.effects.norm, y=data.batch.effects.not.norm, 
+                             by="Name", all=TRUE, incomparables=NA,
+                             suffixes=c( ".Norm", ".Not.Norm" ) )
+
+rownames( data.batch.effects ) <- make.names( data.batch.effects$"Name" )
+
+design <- 
+  data.frame( Name=data.batch.effects$"Name", 
+              stringr::str_split_fixed( string=data.batch.effects$"Name", pattern="_", n=7 ),
+              stringsAsFactors=FALSE )
+
+colnames( design )[ -1 ] <- 
+  c( "Project.Number", "Project.Name", "Batch", "Run.number", 
+     "Sample.name", "Preparation.repeat", "Injection.repeat" )
+
+design$"Run.number" <- as.numeric( design$"Run.number" )
+
+data.batch.effects <- data.batch.effects[ , colnames( data.batch.effects ) != "Name" ]
+
+is.sample <- grepl( x=design$"Sample.name", pattern="^[0-9]+$" )
+
+data.test <- t( data.batch.effects[ is.sample, ] )
+
+has.batches <- ( length( unique( design[ is.sample, "Batch" ] ) ) > 1 )
+
+if ( has.batches ) {
+
+  dm <- 
+    stats::model.matrix( object= ~ Batch * Run.number, 
+                         data=design[ is.sample, ] )
+  
+  mFit <- limma::lmFit( object=data.test, design=dm )
+  
+  fit.batch <- limma::eBayes( mFit )
+  
+  result.batch <- table.result.batch <- limma::topTable( fit=fit.batch, number=Inf )
+  
+  table.result.batch$"Name" <- rownames( table.result.batch )
+  table.result.batch <- table.result.batch[ , c( "Name", "AveExpr", "F",  "P.Value", "adj.P.Val" ) ]
+  
+  tmp <- colnames( table.result.batch ) != "Name"
+  table.result.batch[ , tmp ] <- apply( X=table.result.batch[ , tmp ], MAR=2, FUN=formatC, format="g", digits=3 )
+  
+  knitr::kable( x=table.result.batch, row.names=FALSE, caption="Metabolites (normalized and non-normalized ranged by batch effect." )
+  
+}
+
+```
+
+```{r Batch-Heatmap, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Heatmap of coefficients from the batch effect model.", eval=plot.figures}
+
+if ( has.batches ) {
+
+  names.coef <- colnames( fit.batch$"coefficients" )
+  names.coef <- names.coef[ names.coef != "(Intercept)" ]
+  
+  result.batch.list <- vector( mode="list", length=length( names.coef ) )
+  names( result.batch.list ) <- names.coef
+  
+  for ( i in 1:length( names.coef ) ) {
+    
+    tmp <- names.coef[ i ]
+    
+    result.batch.list[[ tmp ]] <- 
+      limma::topTable( fit=fit.batch, coef=tmp, number=Inf )
+    
+  }
+  
+  tmp.coef <- lapply( X=result.batch.list, FUN=function( x ) { dplyr::select( .data=x, "logFC" ) } )
+  tmp.p <- lapply( X=result.batch.list, FUN=function( x ) { dplyr::select( .data=x, "adj.P.Val" ) } )
+  
+  colnames( tmp.coef[[ 1 ]] )[ colnames( tmp.coef[[ 1 ]] )=="logFC" ] <- names( tmp.coef )[ 1 ]
+  batch.heatmap <- tmp.coef[[ 1 ]]
+  
+  colnames( tmp.p[[ 1 ]] )[ colnames( tmp.p[[ 1 ]] )=="adj.P.Val" ] <- names( tmp.p )[ 1 ]
+  p.adj.heatmap <- tmp.p[[ 1 ]]
+  
+  for ( i in 2:length( tmp.coef ) ) {
+    
+    # Coefficients
+    
+    colnames( tmp.coef[[ i ]] )[ colnames( tmp.coef[[ i ]] )=="logFC" ] <- names( tmp.coef )[ i ]
+    batch.heatmap <- merge( x=batch.heatmap, y=tmp.coef[[ i ]], by="row.names", all=TRUE )
+    
+    rownames( batch.heatmap ) <- batch.heatmap$"Row.names"
+    batch.heatmap <- batch.heatmap[ , colnames( batch.heatmap )!="Row.names" ]
+    
+    # Adjusted p-values
+    
+    colnames( tmp.p[[ i ]] )[ colnames( tmp.p[[ i ]] )=="adj.P.Val" ] <- names( tmp.p )[ i ]
+    p.adj.heatmap <- merge( x=p.adj.heatmap, y=tmp.p[[ i ]], by="row.names", all=TRUE )
+    
+    rownames( p.adj.heatmap ) <- p.adj.heatmap$"Row.names"
+    p.adj.heatmap <- p.adj.heatmap[ , colnames( p.adj.heatmap )!="Row.names" ]
+    
+  }
+  
+  batch.heatmap <- as.matrix( batch.heatmap )
+  p.adj.heatmap <- as.matrix( p.adj.heatmap )
+  
+  note.heatmap <- p.adj.heatmap
+  note.heatmap[] <- NA
+  note.heatmap[ p.adj.heatmap < 0.1 ] <- "*"
+  note.heatmap[ p.adj.heatmap < 0.05 ] <- "x"
+  note.heatmap[ p.adj.heatmap < 0.01 ] <- "#"
+  
+  gplots::heatmap.2( x = batch.heatmap,
+                     cellnote = note.heatmap,
+                     col = gplots::bluered( n=99 ),
+                     margins = c( 15, 10 ),
+                     notecol = "black",
+                     trace = "none",
+                     tracecol = "black",
+                     scale = "none" )
+  
+  print( "#: p.adj < 0.01; x: p.adj < 0.05; *: p.adj < 0.10" )
+  
+}
+
+```
+
+
+
+
+\newpage
+
+
+
+
+
+# Relative Standard Deviation of Features 
+
+## Peak Areas
+
+### Over All Batches
+
+#### Table
+
+```{r RSDs-Compute}
+
+groups.rsd <- apply( X=fnames.split.wide[ , c( 5 ), drop=FALSE ], MAR=1, FUN=paste, collapse=";" )
+
+groups.rsd[ !grepl( x=groups.rsd, 
+            pattern="(Blank)|(CALIB)|(NIST)|(PO)|(Solvent)",
+            ignore.case=TRUE ) ] <- "Sample"
+
+cs.repd <- names( which( table( groups.rsd ) > 2 ) )
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds <- array( dim=c( ncol( data.heatmap ), length( cs.repd ) ) )
+  colnames( rsds ) <- cs.repd
+  rownames( rsds ) <- colnames( data.heatmap )
+  
+  for ( i in 1:length( cs.repd ) ) {
+
+    rsds[ , cs.repd[ i ] ] <- 
+      apply( X=data.heatmap[ groups.rsd==cs.repd[ i ], ], 
+             MAR=2, 
+             FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) } )
+    
+  }
+  
+  rsds <- rsds*100
+  
+  rsds.table <- data.frame( Mean=rowMeans( x=rsds, na.rm=TRUE ),
+                            Min=apply( X=rsds, MAR=1, FUN=min, na.rm=TRUE ),
+                            Max=apply( X=rsds, MAR=1, FUN=max, na.rm=TRUE ),
+                            rsds, check.names=FALSE )
+  
+  rsds.table <- rsds.table[ order( apply( X=rsds.table, MAR=1, FUN=min, na.rm=TRUE ), 
+                                   decreasing=FALSE ), ]
+  
+  tmp <- grepl( x=colnames( rsds.table ), pattern="(NIST)|(PO)", ignore.case=TRUE )
+  tmp2 <- grepl( x=colnames( rsds.table ), pattern="Sample", ignore.case=TRUE )
+  
+  if ( any( tmp ) | any( tmp2 ) ) {
+    
+    rsds.table <- 
+      rsds.table[ , c( colnames( rsds.table )[ tmp ], 
+                          colnames( rsds.table )[ tmp2 ],
+                          colnames( rsds.table )[ !tmp & !tmp2 ] ) ]
+    
+  }
+  
+  pairs.order <- rownames( rsds.table )
+  
+} else {
+  
+  rsds.table <- NULL
+  pairs.order <- colnames( data.heatmap )
+  
+}
+
+```
+
+```{r RSDs-Print}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.table.printed <- data.frame( Name=rownames( rsds.table ), 
+                                    rsds.table, check.names=FALSE )
+  
+  # Make a short version of the name, if necessary.
+  # rsds.table.printed$"Name" <- 
+  #   stringr::str_sub( string=rsds.table.printed$"Name", start=1, end=15 )
+  
+  knitr::kable( x=rsds.table.printed, digits=1, row.names=FALSE, caption="Relative standard deviation (RSD; %) shown for each feature (rows) in each replicated batch;concentration group (columns)." )
+  
+}
+
+```
+
+\newpage
+
+#### Heatmap
+
+```{r RSDs-Hmap-Values, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). White values are missing (i.e., peak not detected).", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.heatmap <- rsds.cellnote <- rsds
+  rsds.heatmap[ is.na( rsds.heatmap ) ] <- 
+    ( max( rsds.heatmap, na.rm=TRUE ) + min( rsds.heatmap, na.rm=TRUE ) )/2
+  
+  rsds.cellnote <- round( x=rsds.cellnote, digits=0 )
+  mode( rsds.cellnote ) <- "character"
+  rsds.cellnote[ rsds.cellnote=="NaN" ] <- ""
+  
+  gplots::heatmap.2( x=rsds.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.cellnote,
+                     notecol="black",
+                     notecex=0.75 )
+  
+}
+
+```
+
+\newpage
+
+```{r RSDs-Hmap-Threshold, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). Values above the highest threshold are shown in red, and values below the two thresholds are shown in white and blue.", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  gplots::heatmap.2( x=rsds.heatmap, 
+                     scale="none",
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.cellnote,
+                     notecol="black",
+                     notecex=0.75,
+                     breaks=c( 0, 10, 20, max( rsds.heatmap ) ),
+                     col=c( "blue", "white", "red" ) )
+  
+}
+
+```
+
+\newpage
+
+### Within Batches
+
+#### Table
+
+```{r RSDs-Batches-Compute}
+
+groups.rsd <- fnames.split.wide[ , c( 3, 5 ), drop=FALSE ]
+
+groups.rsd[ !grepl( x=groups.rsd[ , 2 ], 
+                    pattern="(Blank)|(CALIB)|(NIST)|(PO)|(Solvent)",
+                    ignore.case=TRUE ), 2 ] <- "Sample"
+
+groups.rsd <- apply( X=groups.rsd, MAR=1, FUN=paste, collapse=";" )
+
+cs.repd <- names( which( table( groups.rsd ) > 2 ) )
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds <- array( dim=c( ncol( data.heatmap ), length( cs.repd ) ) )
+  colnames( rsds ) <- cs.repd
+  rownames( rsds ) <- colnames( data.heatmap )
+  
+  for ( i in 1:length( cs.repd ) ) {
+
+    rsds[ , cs.repd[ i ] ] <- 
+      apply( X=data.heatmap[ groups.rsd==cs.repd[ i ], ], 
+             MAR=2, 
+             FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) } )
+    
+  }
+  
+  rsds <- rsds*100
+  
+  rsds.table <- data.frame( Mean=rowMeans( x=rsds, na.rm=TRUE ),
+                            Min=apply( X=rsds, MAR=1, FUN=min, na.rm=TRUE ),
+                            Max=apply( X=rsds, MAR=1, FUN=max, na.rm=TRUE ),
+                            rsds, check.names=FALSE )
+  
+  rsds.table <- rsds.table[ order( apply( X=rsds.table, MAR=1, FUN=min, na.rm=TRUE ), 
+                                   decreasing=FALSE ), ]
+  
+  tmp <- grepl( x=colnames( rsds.table ), pattern="(NIST)|(PO)", ignore.case=TRUE )
+  tmp2 <- grepl( x=colnames( rsds.table ), pattern="Sample", ignore.case=TRUE )
+  
+  if ( any( tmp ) | any( tmp2 ) ) {
+    
+    rsds.table <- 
+      rsds.table[ , c( colnames( rsds.table )[ tmp ], 
+                          colnames( rsds.table )[ tmp2 ],
+                          colnames( rsds.table )[ !tmp & !tmp2 ] ) ]
+    
+  }
+  
+  pairs.order <- rownames( rsds.table )
+  
+} else {
+  
+  rsds.table <- NULL
+  pairs.order <- colnames( data.heatmap )
+  
+}
+
+```
+
+```{r RSDs-Batches-Print}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.table.printed <- data.frame( Name=rownames( rsds.table ), 
+                                    rsds.table, check.names=FALSE )
+  
+  # Make a short version of the name, if necessary.
+  # rsds.table.printed$"Name" <- 
+  #   stringr::str_sub( string=rsds.table.printed$"Name", start=1, end=15 )
+  
+  knitr::kable( x=rsds.table.printed, digits=1, row.names=FALSE, caption="Relative standard deviation (RSD; %) shown for each feature (rows) in each replicated batch;concentration group (columns)." )
+  
+}
+
+```
+
+\newpage
+
+#### Heatmap
+
+```{r RSDs-Hmap-Batches-Values, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). White values are missing (i.e., peak not detected).", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.heatmap <- rsds.cellnote <- rsds
+  rsds.heatmap[ is.na( rsds.heatmap ) ] <- 
+    ( max( rsds.heatmap, na.rm=TRUE ) + min( rsds.heatmap, na.rm=TRUE ) )/2
+  
+  rsds.cellnote <- round( x=rsds.cellnote, digits=0 )
+  mode( rsds.cellnote ) <- "character"
+  rsds.cellnote[ rsds.cellnote=="NaN" ] <- ""
+  
+  gplots::heatmap.2( x=rsds.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.cellnote,
+                     notecol="black",
+                     notecex=0.75 )
+  
+}
+
+```
+
+\newpage
+
+```{r RSDs-Hmap-Batches-Threshold, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). Values above the highest threshold are shown in red, and values below the two thresholds are shown in white and blue.", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  gplots::heatmap.2( x=rsds.heatmap, 
+                     scale="none",
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.cellnote,
+                     notecol="black",
+                     notecex=0.75,
+                     breaks=c( 0, 10, 20, max( rsds.heatmap ) ),
+                     col=c( "blue", "white", "red" ) )
+  
+}
+
+```
+
+\newpage
+
+## Ratio of RSDs of Peak Areas Between QC and Study Samples
+
+* A modified version of the D-ratio.
+
+### Over All Batches
+
+#### Table
+
+```{r D-Ratio-Compute}
+
+groups.rsd <- apply( X=fnames.split.wide[ , c( 5 ), drop=FALSE ], MAR=1, FUN=paste, collapse=";" )
+
+groups.rsd[ !grepl( x=groups.rsd, 
+            pattern="(Blank)|(CALIB)|(NIST)|(PO)|(Solvent)",
+            ignore.case=TRUE ) ] <- "Sample"
+
+cs.repd <- names( which( table( groups.rsd ) > 2 ) )
+cs.repd <- c( "NIST", "PO", "RPO" )
+cs.repd <- cs.repd[ cs.repd %in% groups.rsd ]
+# cs.repd <- names( which( table( groups.rsd ) > 2 ) )
+
+if ( length( cs.repd ) > 0 & any( groups.rsd=="Sample" ) ) {
+
+  rsds <- array( dim=c( ncol( data.heatmap ), length( cs.repd ) ) )
+  colnames( rsds ) <- cs.repd
+  rownames( rsds ) <- colnames( data.heatmap )
+  
+  rsds.samples <- 
+    apply( X=data.heatmap[ groups.rsd=="Sample", ], 
+           MAR=2, 
+           FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) } )
+  
+  for ( i in 1:length( cs.repd ) ) {
+
+    rsds[ , cs.repd[ i ] ] <- 
+      apply( X=data.heatmap[ groups.rsd==cs.repd[ i ], ], 
+             MAR=2, 
+             FUN=function( x, y ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) } ) /
+      rsds.samples
+    
+  }
+  
+  rsds <- rsds*100
+  
+  rsds.table <- data.frame( Mean=rowMeans( x=rsds, na.rm=TRUE ),
+                            Min=apply( X=rsds, MAR=1, FUN=min, na.rm=TRUE ),
+                            Max=apply( X=rsds, MAR=1, FUN=max, na.rm=TRUE ),
+                            rsds, check.names=FALSE )
+  
+  rsds.table <- rsds.table[ order( apply( X=rsds.table, MAR=1, FUN=min, na.rm=TRUE ), 
+                                   decreasing=FALSE ), ]
+  
+  tmp <- grepl( x=colnames( rsds.table ), pattern="(NIST)|(PO)", ignore.case=TRUE )
+  tmp2 <- grepl( x=colnames( rsds.table ), pattern="Sample", ignore.case=TRUE )
+  
+  if ( any( tmp ) | any( tmp2 ) ) {
+    
+    rsds.table <- 
+      rsds.table[ , c( colnames( rsds.table )[ tmp ], 
+                          colnames( rsds.table )[ tmp2 ],
+                          colnames( rsds.table )[ !tmp & !tmp2 ] ) ]
+    
+  }
+  
+  pairs.order <- rownames( rsds.table )
+  
+} else {
+  
+  rsds.table <- NULL
+  pairs.order <- colnames( data.heatmap )
+  
+}
+
+```
+
+```{r D-Ratio-Print}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.table.printed <- data.frame( Name=rownames( rsds.table ), 
+                                    rsds.table, check.names=FALSE )
+  
+  # Make a short version of the name, if necessary.
+  # rsds.table.printed$"Name" <- 
+  #   stringr::str_sub( string=rsds.table.printed$"Name", start=1, end=15 )
+  
+  knitr::kable( x=rsds.table.printed, digits=1, row.names=FALSE, caption="Modified D-ratio (ratio between relative standard deviation (RSD; %) in the QC samples and the RSD in the study samples. Ratio of RSDs shown for each feature (rows) for each QC sample type (columns)." )
+  
+}
+
+```
+
+\newpage
+
+#### Heatmap
+
+```{r D-Ratio-Hmap-Values, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Modified D-ratio (ratio between relative standard deviation (RSD; %) in the QC samples and the RSD in the study samples. Ratio of RSDs shown for each feature (rows) for each QC sample type (columns). White values are missing (i.e., peak not detected).", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.heatmap <- rsds.cellnote <- 
+    rsds[ !grepl( x=rownames( rsds ), pattern=patterns.istd, ignore.case=TRUE ), ]
+  # rsds.heatmap <- rsds.cellnote <- rsds
+  
+  rsds.heatmap[ is.na( rsds.heatmap ) ] <- 
+    ( max( rsds.heatmap, na.rm=TRUE ) + min( rsds.heatmap, na.rm=TRUE ) )/2
+  
+  rsds.cellnote <- round( x=rsds.cellnote, digits=0 )
+  mode( rsds.cellnote ) <- "character"
+  rsds.cellnote[ rsds.cellnote=="NaN" ] <- ""
+  
+  gplots::heatmap.2( x=rsds.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.cellnote,
+                     notecol="black",
+                     notecex=0.75 )
+  
+}
+
+```
+
+\newpage
+
+```{r D-Ratio-Hmap-Batches-Threshold, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Modified D-ratio (ratio between relative standard deviation (RSD; %) in the QC samples and the RSD in the study samples. Ratio of RSDs shown for each feature (rows) for each QC sample type (columns). . Values above the highest threshold are shown in red, and values below the two thresholds are shown in white and blue.", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  gplots::heatmap.2( x=rsds.heatmap, 
+                     scale="none",
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.cellnote,
+                     notecol="black",
+                     notecex=0.75,
+                     breaks=c( 0, 10, 20, max( rsds.heatmap ) ),
+                     col=c( "blue", "white", "red" ) )
+  
+}
+
+```
+
+\newpage
+
+## Retention Times
+
+### Over All Batches
+
+#### Table
+
+```{r RSDs-RT-Compute}
+
+groups.rsd <- apply( X=fnames.split.wide[ , c( 5 ), drop=FALSE ], MAR=1, FUN=paste, collapse=";" )
+
+groups.rsd[ !grepl( x=groups.rsd, 
+            pattern="(Blank)|(CALIB)|(NIST)|(PO)|(Solvent)",
+            ignore.case=TRUE ) ] <- "Sample"
+
+cs.repd <- names( which( table( groups.rsd ) > 2 ) )
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.RT <- array( dim=c( ncol( RTs.heatmap ), length( cs.repd ) ) )
+  colnames( rsds.RT ) <- cs.repd
+  rownames( rsds.RT ) <- colnames( data.heatmap )
+  
+  for ( i in 1:length( cs.repd ) ) {
+
+    rsds.RT[ , cs.repd[ i ] ] <- 
+      apply( X=RTs.heatmap[ groups.rsd==cs.repd[ i ], ], 
+             MAR=2, 
+             FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) } )
+    
+  }
+  
+  rsds.RT <- rsds.RT*100
+  
+  rsds.RT.table <- data.frame( Mean=rowMeans( x=rsds.RT, na.rm=TRUE ),
+                            Min=apply( X=rsds.RT, MAR=1, FUN=min, na.rm=TRUE ),
+                            Max=apply( X=rsds.RT, MAR=1, FUN=max, na.rm=TRUE ),
+                            rsds.RT, check.names=FALSE )
+  
+  rsds.RT.table <- rsds.RT.table[ order( apply( X=rsds.RT.table, MAR=1, FUN=min, na.rm=TRUE ), 
+                                   decreasing=FALSE ), ]
+  
+  tmp <- grepl( x=colnames( rsds.RT.table ), pattern="(NIST)|(PO)", ignore.case=TRUE )
+  tmp2 <- grepl( x=colnames( rsds.RT.table ), pattern="Sample", ignore.case=TRUE )
+  
+  if ( any( tmp ) | any( tmp2 ) ) {
+    
+    rsds.RT.table <- 
+      rsds.RT.table[ , c( colnames( rsds.RT.table )[ tmp ], 
+                          colnames( rsds.RT.table )[ tmp2 ],
+                          colnames( rsds.RT.table )[ !tmp & !tmp2 ] ) ]
+    
+  }
+  
+  pairs.order <- rownames( rsds.RT.table )
+  
+} else {
+  
+  rsds.RT.table <- NULL
+  pairs.order <- colnames( data.heatmap )
+  
+}
+
+```
+
+```{r RSDs-RT-Print}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.RT.table.printed <- data.frame( Name=rownames( rsds.RT.table ), 
+                                    rsds.RT.table, check.names=FALSE )
+  
+  # Make a short version of the name, if necessary.
+  # rsds.table.printed$"Name" <- 
+  #   stringr::str_sub( string=rsds.table.printed$"Name", start=1, end=15 )
+  
+  knitr::kable( x=rsds.RT.table.printed, digits=1, row.names=FALSE, caption="Relative standard deviation (RSD; %) of retention times shown for each feature (rows) in each replicated batch;concentration group (columns)." )
+  
+}
+
+```
+
+\newpage
+
+#### Heatmap
+
+```{r RSDs-RT-Hmap, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) of retention times shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). White values are missing (i.e., peak not detected).", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.RT.heatmap <- rsds.RT.cellnote <- rsds.RT
+  rsds.RT.heatmap[ is.na( rsds.RT.heatmap ) ] <- 
+    ( max( rsds.RT.heatmap, na.rm=TRUE ) + min( rsds.RT.heatmap, na.rm=TRUE ) )/2
+  
+  rsds.RT.cellnote <- round( x=rsds.RT.cellnote, digits=0 )
+  mode( rsds.RT.cellnote ) <- "character"
+  rsds.RT.cellnote[ rsds.RT.cellnote=="NaN" ] <- ""
+  
+  gplots::heatmap.2( x=rsds.RT.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.RT.cellnote,
+                     notecol="black",
+                     notecex=0.75 )
+  
+}
+
+```
+
+\newpage
+
+```{r RSDs-RT-Hmap-Threshold, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) of retention times shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). Values above the highest threshold are shown in red, and values below the two thresholds are shown in white and blue.", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  gplots::heatmap.2( x=rsds.RT.heatmap, 
+                     scale="none",
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.RT.cellnote,
+                     notecol="black",
+                     notecex=0.75,
+                     breaks=c( 0, 10, 20, max( rsds.RT.heatmap ) ),
+                     col=c( "blue", "white", "red" ) )
+  
+}
+
+```
+
+\newpage
+
+### Within Batches
+
+#### Table
+
+```{r RSDs-RT-Batches-Compute}
+
+groups.rsd <- fnames.split.wide[ , c( 3, 5 ), drop=FALSE ]
+
+groups.rsd[ !grepl( x=groups.rsd[ , 2 ], 
+                    pattern="(Blank)|(CALIB)|(NIST)|(PO)|(Solvent)",
+                    ignore.case=TRUE ), 2 ] <- "Sample"
+
+groups.rsd <- apply( X=groups.rsd, MAR=1, FUN=paste, collapse=";" )
+
+cs.repd <- names( which( table( groups.rsd ) > 2 ) )
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.RT <- array( dim=c( ncol( RTs.heatmap ), length( cs.repd ) ) )
+  colnames( rsds.RT ) <- cs.repd
+  rownames( rsds.RT ) <- colnames( data.heatmap )
+  
+  for ( i in 1:length( cs.repd ) ) {
+
+    rsds.RT[ , cs.repd[ i ] ] <- 
+      apply( X=RTs.heatmap[ groups.rsd==cs.repd[ i ], ], 
+             MAR=2, 
+             FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) } )
+    
+  }
+  
+  rsds.RT <- rsds.RT*100
+  
+  rsds.RT.table <- data.frame( Mean=rowMeans( x=rsds.RT, na.rm=TRUE ),
+                            Min=apply( X=rsds.RT, MAR=1, FUN=min, na.rm=TRUE ),
+                            Max=apply( X=rsds.RT, MAR=1, FUN=max, na.rm=TRUE ),
+                            rsds.RT, check.names=FALSE )
+  
+  rsds.RT.table <- rsds.RT.table[ order( apply( X=rsds.RT.table, MAR=1, FUN=min, na.rm=TRUE ), 
+                                   decreasing=FALSE ), ]
+  
+  tmp <- grepl( x=colnames( rsds.RT.table ), pattern="(NIST)|(PO)", ignore.case=TRUE )
+  tmp2 <- grepl( x=colnames( rsds.RT.table ), pattern="Sample", ignore.case=TRUE )
+  
+  if ( any( tmp ) | any( tmp2 ) ) {
+    
+    rsds.RT.table <- 
+      rsds.RT.table[ , c( colnames( rsds.RT.table )[ tmp ], 
+                          colnames( rsds.RT.table )[ tmp2 ],
+                          colnames( rsds.RT.table )[ !tmp & !tmp2 ] ) ]
+    
+  }
+  
+  pairs.order <- rownames( rsds.RT.table )
+  
+} else {
+  
+  rsds.RT.table <- NULL
+  pairs.order <- colnames( data.heatmap )
+  
+}
+
+```
+
+```{r RSDs-RT-Batches-Print}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.RT.table.printed <- data.frame( Name=rownames( rsds.RT.table ), 
+                                    rsds.RT.table, check.names=FALSE )
+  
+  # Make a short version of the name, if necessary.
+  # rsds.table.printed$"Name" <- 
+  #   stringr::str_sub( string=rsds.table.printed$"Name", start=1, end=15 )
+  
+  knitr::kable( x=rsds.RT.table.printed, digits=1, row.names=FALSE, caption="Relative standard deviation (RSD; %) of retention times shown for each feature (rows) in each replicated batch;concentration group (columns)." )
+  
+}
+
+```
+
+\newpage
+
+#### Heatmap
+
+```{r RSDs-RT-Batches-Hmap, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) of retention times shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). White values are missing (i.e., peak not detected).", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  rsds.RT.heatmap <- rsds.RT.cellnote <- rsds.RT
+  rsds.RT.heatmap[ is.na( rsds.RT.heatmap ) ] <- 
+    ( max( rsds.RT.heatmap, na.rm=TRUE ) + min( rsds.RT.heatmap, na.rm=TRUE ) )/2
+  
+  rsds.RT.cellnote <- round( x=rsds.RT.cellnote, digits=0 )
+  mode( rsds.RT.cellnote ) <- "character"
+  rsds.RT.cellnote[ rsds.RT.cellnote=="NaN" ] <- ""
+  
+  gplots::heatmap.2( x=rsds.RT.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.RT.cellnote,
+                     notecol="black",
+                     notecex=0.75 )
+  
+}
+
+```
+
+\newpage
+
+```{r RSDs-RT-Batches-Hmap-Threshold, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Relative standard deviation (RSD; %) of retention times shown as a heatmap for each feature (rows) in each replicated batch;concentration group (columns). Values above the highest threshold are shown in red, and values below the two thresholds are shown in white and blue.", eval=plot.figures}
+
+if ( length( cs.repd ) > 0 ) {
+
+  gplots::heatmap.2( x=rsds.RT.heatmap, 
+                     scale="none",
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=rsds.RT.cellnote,
+                     notecol="black",
+                     notecex=0.75,
+                     breaks=c( 0, 10, 20, max( rsds.RT.heatmap ) ),
+                     col=c( "blue", "white", "red" ) )
+  
+}
+
+```
+
+
+
+\newpage
+
+
+
+# Correlation Between Peak Areas and Concentrations
+
+```{r R2s-Compute}
+
+has.calibration.curves <- ( length( na.omit( object=unique( x=concentrations.wide ) ) ) > 2 )
+  
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s <- 
+    array( dim=c( ncol( data.heatmap ), 
+                  length( unique( fnames.split.wide[ grepl( x=fnames.split.wide[ , 5 ], 
+                                                            pattern="CALIBCURVE" ), 
+                                                     6 ] ) ) ) )
+  
+  rownames( r2s ) <- colnames( data.heatmap )
+  colnames( r2s ) <- unique( fnames.split.wide[ grepl( x=fnames.split.wide[ , 5 ], 
+                                                       pattern="CALIBCURVE" ), 
+                                                6 ] )
+  
+  r2s.lr <- r2s.log <- r2s
+  
+  err.rel <- data.wide
+  err.rel[] <- NA
+  
+  err.rel.lr <- err.rel
+  
+  for ( i in 1:ncol( r2s ) ) {
+    
+    idx.i <- which( fnames.split.wide[ , 6 ]==colnames( r2s )[ i ] )
+    
+    for ( j in 1:nrow( r2s ) ) {
+      
+      idx.value <-
+        which( !is.na( data.wide[ idx.i, j ] ) & !is.na( concentrations.wide[ idx.i ] ) )
+      
+      idx.value.lr <- 
+        which( !is.na( data.wide[ idx.i, j ] ) & !is.na( concentrations.wide[ idx.i ] ) &
+                 concentrations.wide[ idx.i ] >= 
+                 unlist( linear.range.wide[ rownames( r2s )[ j ], 
+                                            "Linearity range - low concentration" ] ) &
+                 concentrations.wide[ idx.i ] <= 
+                 unlist( linear.range.wide[ rownames( r2s )[ j ], 
+                                            "Linearity range - high concentration" ] ) )
+      
+      if ( length( idx.value ) > 2 ) {
+      
+          tmp <- 
+            stats::lm.fit( x=as.matrix( concentrations.wide[ idx.i[ idx.value ] ] ),
+                           y=data.wide[ idx.i[ idx.value ], j ] )
+          
+          err.rel[ idx.i[ idx.value ], j ] <- 
+            tmp$"residuals" / tmp$"fitted.values"
+      
+      }
+      
+      if ( length( idx.value.lr ) > 2 ) {
+      
+          # Linear model computed within the linear range of the metabolite 'j'.
+        
+          tmp.lr <- 
+            stats::lm.fit( x=as.matrix( concentrations.wide[ idx.i[ idx.value.lr ] ] ),
+                           y=data.wide[ idx.i[ idx.value.lr ], j ] )
+          
+          err.rel.lr[ idx.i[ idx.value.lr ], j ] <- 
+            tmp.lr$"residuals" / tmp.lr$"fitted.values"
+          
+          r2s.lr[ j, i ] <- cor( x=data.wide[ idx.i[ idx.value.lr ], j ],
+                                 y=concentrations.wide[ idx.i[ idx.value.lr ] ], 
+                                 use="pairwise.complete.obs" )
+      
+      }
+      
+    }
+
+    r2s[ , i ] <- 
+      cor( x=data.heatmap[ fnames.split.wide[ , 6 ]==colnames( r2s )[ i ], ], 
+           y=concentrations.wide[ fnames.split.wide[ , 6 ]==colnames( r2s )[ i ] ],
+           use="pairwise.complete.obs" )
+    
+    r2s.log[ , i ] <- 
+      cor( x=data.heatmap.log[ fnames.split.wide[ , 6 ]==colnames( r2s )[ i ], ], 
+           y=log10( concentrations.wide[ fnames.split.wide[ , 6 ]==colnames( r2s )[ i ] ] ),
+           use="pairwise.complete.obs" )
+    
+  }
+  
+  r2s.table <- data.frame( Mean=rowMeans( x=r2s, na.rm=TRUE ),
+                           r2s, check.names=FALSE )
+  
+  r2s.log.table <- data.frame( Mean=rowMeans( x=r2s.log, na.rm=TRUE ),
+                               r2s.log, check.names=FALSE )
+  
+  r2s.table <- r2s.table[ order( apply( X=r2s.table, MAR=1, FUN=max, na.rm=TRUE ), 
+                                 decreasing=TRUE ), ]
+  
+  r2s.log.table <- r2s.log.table[ order( apply( X=r2s.log.table, MAR=1, FUN=max, na.rm=TRUE ), 
+                                         decreasing=TRUE ), ]
+  
+  
+}
+
+```
+
+\newpage
+
+## Original Values
+
+### Table
+
+```{r R2s-Print}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.table.printed <- data.frame( Name=rownames( r2s.table ), 
+                                   r2s.table, check.names=FALSE )
+  
+  knitr::kable( x=r2s.table.printed, digits=3, row.names=FALSE, caption="Correlation between the peak area and the sample concentration shown for each feature (rows) in each batch (columns)." )
+  
+}
+
+```
+
+\newpage
+
+### Heatmap
+
+```{r R2s-Hmap, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Correlation (R^2) between the peak area and the sample concentration shown for each feature (rows) in each batch (columns). White values are missing (i.e., peak not detected).", eval=plot.figures}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.heatmap <- r2s.cellnote <- r2s
+  r2s.heatmap[ is.na( r2s.heatmap ) ] <- 0
+  
+  if ( ncol( r2s.heatmap )==1 ) {
+    
+    r2s.heatmap <- cbind( r2s.heatmap, rep( x=0, times=nrow( r2s.heatmap ) ) )
+    r2s.cellnote <- cbind( r2s.cellnote, rep( x=NA, times=nrow( r2s.cellnote ) ) )
+    
+  }
+  
+  gplots::heatmap.2( x=r2s.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ) )
+  
+}
+
+```
+
+\newpage
+
+### Heatmap with $R^2$ Values
+
+```{r R2s-Hmap-Values, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Correlation (R^2) between the peak area and the sample concentration shown for each feature (rows) in each batch (columns). White values are missing (i.e., peak not detected)."}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.cellnote <- round( x=r2s.cellnote, digits=3 )
+  mode( r2s.cellnote ) <- "character"
+  r2s.cellnote[ r2s.cellnote=="NaN" ] <- ""
+  
+  gplots::heatmap.2( x=r2s.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=r2s.cellnote,
+                     notecol="black",
+                     notecex=0.75 )
+  
+}
+
+```
+
+\newpage
+
+### Heatmap of the Top Tail of the R^2$ Distribution
+
+* Color scale centered at $R^2=0.9$.
+
+```{r R2s-Hmap-Top-Tail, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Correlation (R^2) between the peak area and the sample concentration shown for each feature (rows) in each batch (columns).", eval=plot.figures}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.heatmap.tail <- r2s.heatmap
+  r2s.heatmap.tail[ r2s.heatmap.tail < 0.8 ] <- 0.8
+  
+  if ( any( r2s.heatmap.tail > 0.8 ) ) {
+  
+    gplots::heatmap.2( x=r2s.heatmap.tail, 
+                       scale="none", 
+                       col=gplots::bluered( n=99 ),
+                       trace="none",
+                       margins=c( 7, 11 ),
+                       cellnote=r2s.cellnote,
+                       notecol="black",
+                       notecex=0.75,
+                       symbreaks=FALSE )
+    
+  }
+  
+}
+
+```
+
+\newpage
+
+### Relative Error of the Linear Model Fit
+
+* Relative error between calibration model fit and observation.
+* Colour in log-scale.
+
+#### Entire Range
+
+```{r Relative-Error-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  data.plot <- log10( abs( err.rel ) )
+  
+  if ( nrow( data.plot ) < ncol( data.plot ) ) {
+    
+    data.plot <- t( data.plot )
+    
+  }
+  
+  gplots::heatmap.2( x=data.plot, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ), 
+                     trace="none", 
+                     margins=c( 10, 11 ),
+                     na.color="gray",
+                     Colv=FALSE, Rowv=FALSE, dendrogram="none" )
+
+}
+  
+```
+
+\newpage
+
+```{r Relative-Error-Range, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  breaks <- c( 10, 15 )
+  breaks <- c( -Inf, -breaks[ length( breaks ):1 ], 0, breaks, Inf)
+  
+  data.plot <- err.rel * 100
+  data.plot <- reshape2::melt( data=data.plot, value.name="Relative.Error.Pcnt" )
+  data.plot$"Relative.Error.Pcnt.Range" <- cut( x=data.plot$"Relative.Error.Pcnt", breaks=breaks )
+  
+  var.x <- "Var1"
+  var.y <- "Var2"
+  var.z <- "Relative.Error.Pcnt.Range"
+  
+  plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+  
+  plot <- plot + 
+    ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+    ggplot2::scale_fill_brewer( palette="RdBu", na.value="black", direction=-1 ) +
+    ggplot2::theme( legend.position="top" ) +
+    ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) ) +
+    ggplot2::xlab( label="" ) +
+    ggplot2::ylab( label="" )
+  
+  if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+    
+    plot <- plot + ggplot2::coord_flip()
+    
+  }
+  
+  print( plot )
+
+}
+
+```
+
+\newpage
+
+#### Linearity Range
+
+* Relative error in percentage for the observations, whose concentrations are within the linearity range.
+* Error computed relative to the calibration curve computed with the samples in the linearity range.
+
+```{r Relative-Error-Hmap-LR, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  data.plot <- err.rel.lr * 100 # log10( abs( err.rel.lr ) )
+  data.plot <- data.plot[ , apply( X=!is.na( data.plot ), MAR=2, FUN=any ) ]
+  
+  rel.err.rl.cellnote <- round( x=data.plot, digits=0 )
+  
+  if ( nrow( data.plot ) < ncol( data.plot ) ) {
+    
+    data.plot <- t( data.plot )
+    
+  }
+  
+  
+  breaks <- c( -max( abs( data.plot ), na.rm=TRUE ), -100, -50, -30, -20, -10, -5, 
+               5, 10, 20, 30, 50, 100, max( abs( data.plot ), na.rm=TRUE ) )
+  
+  gplots::heatmap.2( x=data.plot, 
+                     scale="none", 
+                     trace="none", 
+                     margins=c( 10, 11 ),
+                     na.color="gray",
+                     Colv=FALSE, Rowv=FALSE, dendrogram="none",
+                     breaks=breaks,
+                     col=gplots::bluered( n=length( breaks )-1 ),
+                     cellnote=rel.err.rl.cellnote,
+                     notecol="black",
+                     notecex=0.5 )
+
+}
+  
+```
+
+\newpage
+
+
+## Log-Scaled Peak Areas and Concentrations
+
+### Table
+
+```{r R2s-Log-Print}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.log.table.printed <- data.frame( Name=rownames( r2s.log.table ), 
+                                       r2s.log.table, check.names=FALSE )
+  
+  knitr::kable( x=r2s.log.table.printed, digits=3, row.names=FALSE, caption="Correlation (R^2) between the log-scaled peak area and the log-scaled sample concentration shown for each feature (rows) in each batch (columns)." )
+  
+}
+
+```
+
+\newpage
+
+### Heatmap
+
+```{r R2s-Log-Hmap, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Correlation (R^2) between the log-scaled peak area and the log.scaled sample concentration shown for each feature (rows) in each batch (columns). White values are missing (i.e., peak not detected).", eval=plot.figures}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.log.heatmap <- r2s.log.cellnote <- r2s.log
+  r2s.log.heatmap[ is.na( r2s.log.heatmap ) ] <- 0
+  
+  if ( ncol( r2s.log.heatmap )==1 ) {
+    
+    r2s.log.heatmap <- cbind( r2s.log.heatmap, rep( x=0, times=nrow( r2s.log.heatmap ) ) )
+    
+    r2s.log.cellnote <- 
+      cbind( r2s.log.cellnote, rep( x=NA, times=nrow( r2s.log.cellnote ) ) )
+    
+  }
+  
+  gplots::heatmap.2( x=r2s.log.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ) )
+  
+}
+
+```
+
+\newpage
+
+### Heatmap with $R^2$ Values
+
+```{r R2s-Log-Hmap-Values, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Correlation (R^2) between the log-scaled peak area and the log-scaled sample concentration shown for each feature (rows) in each batch (columns). White values are missing (i.e., peak not detected)."}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.log.cellnote <- round( x=r2s.log.cellnote, digits=3 )
+  mode( r2s.log.cellnote ) <- "character"
+  r2s.log.cellnote[ r2s.log.cellnote=="NaN" ] <- ""
+  
+  gplots::heatmap.2( x=r2s.log.heatmap, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=r2s.log.cellnote,
+                     notecol="black",
+                     notecex=0.75 )
+  
+}
+
+```
+
+\newpage
+
+### Heatmap of the Top Tail of the R^2$ Distribution
+
+* Color scale centered at $R^2=0.9$.
+
+```{r R2s-Log-Hmap-Values-Top-Tail, fig.height=21, fig.width=14, out.width="\\textwidth", dpi=600, caption="Correlation (R^2) between the log-scaled peak area and the log-scaled sample concentration shown for each feature (rows) in each batch (columns).", eval=plot.figures}
+
+if ( has.concentrations & has.calibration.curves ) {
+
+  r2s.log.heatmap.tail <- r2s.log.heatmap
+  r2s.log.heatmap.tail[ r2s.log.heatmap.tail < 0.8 ] <- 0.8
+  
+  gplots::heatmap.2( x=r2s.log.heatmap.tail, 
+                     scale="none", 
+                     col=gplots::bluered( n=99 ),
+                     trace="none",
+                     margins=c( 7, 11 ),
+                     cellnote=r2s.log.cellnote,
+                     notecol="black",
+                     notecex=0.75,
+                     symbreaks=FALSE )
+  
+}
+
+```
+
+
+\newpage
+
+
+# Transition Pairs
+
+* Ratio of peak areas between the two transitions from the same compound, where available.
+
+```{r Transition-Pairs}
+
+compound.names <- 
+  stringr::str_split_fixed( string=colnames( data.heatmap.wo.blanks ), 
+                            pattern=";", n=2 )[ , 1 ]
+
+pairs <- names( which( table( compound.names ) == 2 ) )
+
+data.pairs <- data.heatmap.wo.blanks[ , compound.names %in% pairs ]
+data.pairs <- data.pairs[ , order( colnames( data.pairs ) ) ]
+
+ratios <- 
+  data.pairs[ , seq( from=1, to=ncol( data.pairs )-1, by=2 ) ] / 
+  data.pairs[ , seq( from=1, to=ncol( data.pairs )-1, by=2 ) + 1 ]
+
+tmp <- ( apply( X=ratios, MAR=2, FUN=median, na.rm=TRUE ) > 1 )
+ratios[ , tmp ] <- 1 / ratios[ , tmp ]
+
+colnames( ratios ) <- 
+  stringr::str_split_fixed( string=colnames( ratios ), pattern=";", n=2 )[ , 1 ]
+
+```
+
+\newpage
+
+## Heatmap of Transition Pairs
+
+### Extreme Values Included
+
+* Heatmap of peak area ratios between the transition pairs (columns) for each sample (rows). Ratios are log10-scaled.
+
+```{r Transition-Pairs-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, caption="Heatmap of peak area ratios between the transition pairs (columns) for each sample (rows). Ratios are log10-scaled.", eval=plot.figures}
+
+ratios.heatmap <- ratios
+
+ratios.heatmap[ is.infinite( ratios.heatmap ) ] <- 
+  max( ratios.heatmap[ !is.infinite( ratios.heatmap ) ], na.rm=TRUE )
+
+ratios.heatmap[ is.na( ratios.heatmap ) ] <- 0
+ratios.heatmap.log <- ratios.heatmap
+
+ratios.heatmap.log[ ratios.heatmap.log==0 ] <- 
+  min( ratios.heatmap.log[ ratios.heatmap.log!=0 ] ) / 2
+
+ratios.heatmap.log <- log10( ratios.heatmap.log )
+
+if ( nrow( ratios.heatmap.log ) < ncol( ratios.heatmap.log ) ) {
+  
+  ratios.heatmap.plot <- t( ratios.heatmap.log )
+  
+} else {
+  
+  ratios.heatmap.plot <- ratios.heatmap.log
+  
+}
+
+gplots::heatmap.2( x=ratios.heatmap.plot, 
+                   scale="none", 
+                   col=gplots::bluered( n=99 ),
+                   trace="none",
+                   margins=c( 7, 11 ) )
+
+
+```
+
+\newpage
+
+### Extreme Values as Not Included
+
+* Heatmap of peak area ratios between the transition pairs (columns) for each sample (rows). Ratios are log10-scaled. Extreme values are shown as gray.
+
+```{r Transition-Pairs-Hmap-NAs, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, caption="Heatmap of peak area ratios between the transition pairs (columns) for each sample (rows). Ratios are log10-scaled. Extreme values are shown as gray.", eval=plot.figures}
+
+ratios.heatmap <- ratios
+
+ratios.heatmap[ is.infinite( ratios.heatmap ) ] <- NA
+ratios.heatmap[ ratios.heatmap==0 ] <- NA
+
+ratios.heatmap.log <- log10( ratios.heatmap )
+
+if ( nrow( ratios.heatmap.log ) < ncol( ratios.heatmap.log ) ) {
+  
+  ratios.heatmap.plot <- t( ratios.heatmap.log )
+  
+} else {
+  
+  ratios.heatmap.plot <- ratios.heatmap.log
+  
+}
+
+gplots::heatmap.2( x=ratios.heatmap.plot, 
+                   scale="none", 
+                   col=gplots::bluered( n=99 ),
+                   trace="none",
+                   margins=c( 7, 11 ),
+                   Colv=FALSE, dendrogram="none", Rowv=FALSE,
+                   na.color="gray" )
+
+
+```
+
+\newpage
+
+## Individual Transition Pairs
+
+```{r Transition-Pairs-Individual, fig.height=25, fig.width=20, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+batch <- fnames.split.wide.wo.blanks[ , 3 ]
+group <- apply( X=fnames.split.wide.wo.blanks[ , c( 3, 5 ) ], MAR=1, FUN=paste, collapse=";" )
+type <- fnames.split.wide.wo.blanks[ , 5 ]
+
+type[ !grepl( x=type, 
+              pattern="(Blank)|(CALIB)|(PO)|(NIST)|(Solvent)",
+              ignore.case=TRUE ) ] <- "Sample"
+
+ratios.plot <- data.frame( Batch=batch, Group=group, Type=type, ratios, check.names=FALSE )
+
+if ( nlevels( ratios.plot$"Batch" ) > 9 ) {
+
+  palette <- 
+    ggplot2::scale_colour_manual( 
+      values=grDevices::rainbow( n=nlevels( ratios.plot$"Batch" ) ) )
+    
+} else {
+  
+  palette <- ggplot2::scale_colour_brewer( palette = "Set1" )
+  
+}
+
+if ( has.concentrations ) {
+  
+  ratios.plot <- 
+    ratios.plot[ order( concentrations.wide, decreasing=FALSE, na.last=FALSE ), ]
+  
+  ratios.plot$"Group" <- 
+    factor( x=ratios.plot$"Group", levels=unique( ratios.plot$"Group" ) )
+  
+}
+
+for ( i in 1:ncol( ratios ) ) {
+  
+  name.i <- colnames( ratios.plot )[ i+3 ]
+  data.plot.i <- ratios.plot[ , c( "Batch", "Group", "Type", name.i ) ]
+  colnames( data.plot.i )[ colnames( data.plot.i )==name.i ] <- "Ratio"
+  
+  plot.i <- ggplot2::ggplot( data=data.plot.i, 
+                             mapping=ggplot2::aes( x=Group, y=Ratio, color=Batch ) )
+  
+  plot.i <- plot.i + 
+    ggplot2::geom_boxplot( outlier.color=NA ) + 
+    ggplot2::geom_jitter( width=0.3 ) +
+    ggplot2::geom_hline( yintercept=0, linetype="dashed" ) +
+    ggplot2::geom_hline( yintercept=1, linetype="dashed" ) +
+    ggplot2::ggtitle( label=name.i ) + 
+    ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) ) +
+    palette +
+    ggplot2::theme( legend.position="top" ) + 
+    ggplot2::coord_flip()
+  
+  print( plot.i )
+  
+  plot.i <- ggplot2::ggplot( data=data.plot.i, 
+                             mapping=ggplot2::aes( x=Type, y=Ratio, color=Batch ) )
+  
+  plot.i <- plot.i + 
+    ggplot2::geom_boxplot( outlier.color=NA ) + 
+    ggplot2::geom_jitter( width=0.3 ) +
+    ggplot2::geom_hline( yintercept=0, linetype="dashed" ) +
+    ggplot2::geom_hline( yintercept=1, linetype="dashed" ) +
+    ggplot2::ggtitle( label=name.i ) + 
+    ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) ) +
+    palette +
+    ggplot2::theme( legend.position="top" ) + 
+    ggplot2::coord_flip()
+  
+  print( plot.i )
+  
+}
+
+```
+
+
+\newpage
+
+
+# Peak Properties
+
+## Peak Area
+
+### Absolute values
+
+```{r Area-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Area"
+mid.z <- NULL
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+### Log-Scaled Values
+
+```{r Area-Log-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Area"
+mid.z <- NULL
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+data.plot[ which( data.plot[ , var.z ]==0 ), var.z ] <- 
+  min( 1, min( x=data.plot[ data.plot[ , var.z ]!=0, var.z ], na.rm=TRUE ) / 2 )
+
+data.plot[ , var.z ] <- log10( data.plot[ , var.z ] )
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+## Background
+
+### Absolute Values
+
+```{r Background-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Background"
+mid.z <- NULL
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+### Log-Scaled Values
+
+```{r Background-Log-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Background"
+mid.z <- NULL
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+data.plot[ which( data.plot[ , var.z ]==0 ), var.z ] <- 
+  min( 1, min( x=data.plot[ data.plot[ , var.z ]!=0, var.z ], na.rm=TRUE ) / 2 )
+
+data.plot[ , var.z ] <- log10( data.plot[ , var.z ] )
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+## Retention Time
+
+```{r RT-Computations}
+
+data.RT <- 
+  data[ , c( "ID", "Replicate.Name", "Retention.Time", 
+             "Acquired.Time", "Explicit.Retention.Time" ) ]
+
+tmp <- tapply( X=data.RT$"Retention.Time", INDEX=data.RT$"ID", FUN=median, na.rm=TRUE )
+data.RT$"RT.Deviation.from.Median" <- data.RT$"Retention.Time" - tmp[ data.RT$"ID" ]
+
+data.RT$"RT.Deviation.from.Transition.List" <- 
+  data.RT$"Retention.Time" - data.RT$"Explicit.Retention.Time"
+
+```
+
+### Absolute
+
+```{r RT-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Retention.Time"
+mid.z <- NULL
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data.RT ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data.RT$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data.RT[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+# data.plot <- data.RT[ , c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+### Deviation from Median
+
+```{r RT-Dev-Median-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "RT.Deviation.from.Median"
+mid.z <- 0
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data.RT ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data.RT$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data.RT[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+# data.plot <- data.RT[ , c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+### Deviation from Transition List
+
+```{r RT-Dev-Transition-List-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "RT.Deviation.from.Transition.List"
+mid.z <- 0
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data.RT ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data.RT$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data.RT[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+# data.plot <- data.RT[ , c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+## Full Width at Half-Maximum
+
+```{r FWHM-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Fwhm"
+mid.z <- 0.5
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+## Points Across Peak
+
+```{r Points-Across-Peak-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Points.Across.Peak"
+mid.z <- NULL
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+if ( is.null( mid.z ) ) {
+  
+  mid.z <- median( x=data.plot[ , var.z ], na.rm=TRUE )
+  
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_gradient2( low="blue", mid="white", high="red", midpoint=mid.z ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+## Truncated
+
+```{r Truncated-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "Truncated"
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_brewer( palette="Set1", direction=-1, drop=FALSE ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+## User Set Peak
+
+```{r User-Set-Peak-Hmap, fig.height=42, fig.width=28, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+var.x <- "ID"
+var.y <- "Replicate.Name"
+var.z <- "User.Set.Peak"
+mid.z <- NULL
+var.sort.y <- "Acquired.Time"
+
+if ( plot.with.solvent ) {
+ 
+  tmp <- rep( x=TRUE, times=nrow( data ) ) 
+  
+} else {
+  
+  tmp <- 
+    !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)", ignore.case=TRUE )
+  
+}
+
+data.plot <- data[ tmp, c( var.x, var.y, var.z, var.sort.y ) ]
+
+if ( !is.null( var.sort.y ) ) {
+  
+  data.plot[ , var.y ] <- 
+    factor( x=data.plot[ , var.y ], 
+            levels=unique( data.plot[ order( x=data.plot[ , var.sort.y ], decreasing=TRUE ), 
+                                      var.y ] ) )
+
+}
+
+plot <- ggplot2::ggplot( data=data.plot, mapping=ggplot2::aes_string( x=var.x, y=var.y ) ) 
+
+plot <- plot + 
+  ggplot2::geom_tile( mapping=ggplot2::aes_string( fill=var.z ) ) + 
+  ggplot2::scale_fill_brewer( palette="Set1", direction=-1, drop=FALSE ) +
+  ggplot2::theme( legend.position="top" ) +
+  ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) )
+
+if ( length( unique( data.plot[ , var.x ] ) ) > length( unique( data.plot[ , var.y ] ) ) ) {
+  
+  plot <- plot + ggplot2::coord_flip()
+  
+}
+
+print( plot )
+
+```
+
+\newpage
+
+## Peak Duration
+
+* Peak duration (x-axis) for each feature (y-axis).
+* Retention time is shown on the x-axis.
+* Features are shown as distinct rows.
+    + Within each feature (row), the retention time range for each sample is shown.
+    + Samples are annotated by distinct color.
+
+```{r Peak-Duration, fig.height=30, fig.width=20, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+if ( plot.with.solvent ) {
+  
+  tmp <- rep( x=TRUE, times=nrow( data ) )
+
+} else {
+  
+  tmp <- !grepl( x=data$"Replicate.Name", pattern="(Blank)|(Solvent)" )
+  
+}
+
+data.plot <- data[ tmp, c( "ID", "Replicate.Name", "Acquired.Time",
+                           "Retention.Time", "Start.Time", "End.Time",
+                           "Explicit.Retention.Time" ) ]
+
+data.plot$"ID" <- factor( x=data.plot$"ID", 
+                          levels=unique( sort( x=data.plot$"ID", decreasing=TRUE ) ) )
+
+data.plot[ , "Replicate.Name" ] <- 
+  factor( x=data.plot[ , "Replicate.Name" ], 
+          levels=unique( data.plot[ order( x=data.plot[ , "Acquired.Time" ], 
+                                           decreasing=TRUE ),
+                                    "Replicate.Name" ] ) )
+
+plot <- ggplot2::ggplot( data=data.plot, 
+                         mapping=ggplot2::aes( x=ID, y=Retention.Time, color=Replicate.Name ), 
+                         group=Replicate.Name )
+
+plot <- plot + 
+  ggplot2::geom_linerange( mapping=ggplot2::aes( ymin=Start.Time, ymax=End.Time ), 
+                           position=ggplot2::position_dodge( width=0.75 ) ) +
+  ggplot2::scale_colour_manual( 
+    values=grDevices::rainbow( n=nlevels( data.plot$Replicate.Name ) ) ) + 
+  ggplot2::geom_point( mapping=ggplot2::aes( x=ID, y=Explicit.Retention.Time ), 
+                                             colour="black", fill="white", size=3 ) +
+  ggplot2::geom_vline( xintercept=( 1:nlevels( data.plot$ID ) )+0.5, linetype="dotted" ) + 
+  ggplot2::theme( legend.position="none" ) + 
+  ggplot2::theme( axis.text=ggplot2::element_text( size=20 ),
+                  axis.title=ggplot2::element_text( size=30 ) ) +
+  ggplot2::coord_flip()
+
+print( plot )
+
+```
+
+\newpage
+
+## Deviation from the Transition List Retention Time
+
+* Blank and Solvent samples omitted.
+
+### Absolute Deviation
+
+#### Average Absolute Deviation
+
+```{r RT-Average-Deviations-Absolute}
+
+N.top.deviations.printed <- 70
+names.columns.printed.before.RT <- c( "ID", "Replicate.Name" )
+names.columns.printed.after.RT <- c( "Retention.Time", "Explicit.Retention.Time" )
+
+data.RT.dev <- 
+  data[ !grepl( x=data$"Replicate.Name", 
+                pattern=c( "(Blank)|(Solvent)" ), 
+                ignore.case=TRUE ), ]
+
+data.RT.dev$"RT.deviation" <- 
+  data.RT.dev$"Retention.Time" - data.RT.dev$"Explicit.Retention.Time"
+
+RT.dev.mean.abs <- 
+  tapply( X=data.RT.dev$RT.deviation, 
+          INDEX=data.RT.dev$"ID", 
+          FUN=function( x ) { mean( x=abs( x ), na.rm=TRUE ) } )
+
+# RT.dev.mean.abs <- data.frame( Mean.abs.RT.dev=RT.dev.mean.abs[ order( RT.dev.mean.abs, decreasing=TRUE ) ] )
+RT.dev.mean.abs <- 
+  data.frame( RT.dev.mean.abs[ order( RT.dev.mean.abs, decreasing=TRUE ) ] )
+
+colnames( RT.dev.mean.abs ) <- "RT.dev.mean.abs"
+
+knitr::kable( x=RT.dev.mean.abs, 
+              caption="Average absolute retention time deviation from the expected (transition list) retention time.",
+              row.names=TRUE )
+
+```
+
+\newpage
+
+#### Sample-Wise Absolute Deviation
+
+```{r RT-Top-Deviations-Absolute}
+
+idx.tmp <- 
+  order( abs( data.RT.dev$"RT.deviation" ), decreasing=TRUE )[ 1:N.top.deviations.printed ]
+
+top.table.RT.dev <- 
+  data.RT.dev[ idx.tmp, 
+               c( names.columns.printed.before.RT, 
+                  "RT.deviation", 
+                  names.columns.printed.after.RT ) ]
+
+knitr::kable( x=top.table.RT.dev, 
+              caption="Largest absolute retention time deviations from the expected (transition list) retention time.",
+              row.names=FALSE )
+
+```
+
+\newpage
+
+### Relative Deviation
+
+#### Average Relative Deviation
+
+```{r RT-Average-Deviations-Relative}
+
+data.RT.dev$"RT.deviation" <- 
+  ( data.RT.dev$"Retention.Time" / data.RT.dev$"Explicit.Retention.Time" - 1 ) * 100
+
+RT.dev.mean.abs <- 
+  tapply( X=data.RT.dev$"RT.deviation", 
+          INDEX=data.RT.dev$"ID", 
+          FUN=function( x ) { mean( x=abs( x ), na.rm=TRUE ) } )
+
+RT.dev.mean.abs <- 
+  data.frame( RT.dev.mean.abs[ order( RT.dev.mean.abs, decreasing=TRUE ) ] )
+
+colnames( RT.dev.mean.abs ) <- "RT.dev.mean.abs.relative"
+
+knitr::kable( x=RT.dev.mean.abs, 
+              caption="Average relative retention time deviation from the expected (transition list) retention time.",
+              row.names=TRUE )
+
+```
+
+\newpage
+
+#### Sample-Wise Relative Deviation
+
+```{r RT-Top-Deviations-Relative}
+
+data.RT.dev$"RT.deviation" <- 
+  ( data.RT.dev$"Retention.Time" / data.RT.dev$"Explicit.Retention.Time" - 1 ) * 100
+
+idx.tmp <- 
+  order( abs( data.RT.dev$"RT.deviation" ), decreasing=TRUE )[ 1:N.top.deviations.printed ]
+
+top.table.RT.dev <- 
+  data.RT.dev[ idx.tmp, 
+               c( names.columns.printed.before.RT, 
+                  "RT.deviation", 
+                  names.columns.printed.after.RT ) ]
+
+knitr::kable( x=top.table.RT.dev, 
+              caption="Largest relative retention time deviations (%) from the expected (transition list) retention time.",
+              digits=2,
+              row.names=FALSE )
+
+```
+
+\newpage
+
+# Individual Features' Peak Areas
+
+* Each metabolite feature has three figures:
+    + Peak area (y-axis; in log-scale) by samples (x.axis)
+    + ~~Boxplot of peak areas (y-axis; log) in each batch-concentration group (x-axis)~~
+    + Peak area (y-axis; in log-scale) by concentration (x-axis) with a linear model fit separately for each batch (line and point shape).
+* In all figures:
+    + Point is a single observation
+    + ~~Color is showing signal (red) and background (blue).~~
+        + Skyline has subtracted background from the signal.
+
+\newpage
+
+```{r Plot, fig.height=9, fig.width=8, out.width="\\textwidth", dpi=600, warning=FALSE, message=FALSE}
+
+data$"Concentration" <- rep( x=NA, times=nrow( data ) )
+
+tmp <- data[ , colnames( data ) != "Area" ]
+colnames( tmp )[ colnames( tmp )=="Background" ] <- "Area"
+data.plot <- rbind( tmp, data[ , colnames( data ) != "Background" ] )
+
+data.plot$"Type" <- factor( x=rep( x=c( "Background", "Signal" ), each=nrow( data ) ), 
+                            levels=c( "Signal", "Background" ) )
+
+if ( !sort.plots.by.R2 | !has.calibration.curves ) {
+  
+  pairs.order <- unique( data.plot$"ID" )
+  
+   # pairs.order<-insert(pairs.order, ats=33, values="GDCA-d6; 454.3/408.2")
+}
+
+for ( i in 1:length( pairs.order ) ) {
+  
+  data.plot.i <- 
+    data.plot[ data.plot$"ID"==pairs.order[ i ], 
+               c( "Replicate.Name", "Area", "Type", "Group", 
+                  "Batch", "C.ngml", "Acquired.Time", "Run.Type",
+                  "Linearity range - low concentration", 
+                  "Linearity range - high concentration",
+                  "Preparation.Repeat" ) ]
+  
+  data.plot.i$"Is.Found" <- rep( x=TRUE, times=nrow( data.plot.i ) )
+  data.plot.i$"Is.Found"[ is.na( data.plot.i$"Area" ) ] <- FALSE
+  data.plot.i$"Is.Found" <- factor( x=data.plot.i$"Is.Found", levels=c( TRUE, FALSE ) )
+  data.plot.i$"Area"[ is.na( data.plot.i$"Area" ) ] <- 0
+  
+  tmp.1 <- data.plot.i[ 1, "Linearity range - low concentration" ]
+  
+  tmp.2 <- data.plot.i[ 1, "Linearity range - high concentration" ]
+  
+  if ( !is.na( tmp.1 ) & !is.na( tmp.2 ) ) {
+  
+    data.plot.i$"Linearity.Range" <- 
+      cut( x=data.plot.i$"C.ngml", 
+           breaks=c( -Inf, 
+                     tmp.1 - .Machine$"double.eps", 
+                     tmp.2 + .Machine$"double.eps", 
+                     Inf ),
+           include.lowest=TRUE )
+    
+  } else {
+    
+    data.plot.i$"Linearity.Range" <- rep( x="None", times=nrow( data.plot.i ) )
+    
+  }
+  
+  if ( plot.figures & plot.observations ) {
+  
+    if ( plot.signal.and.bg.together ) {
+      
+      plot.i <- 
+        ggplot2::ggplot( mapping=ggplot2::aes_string( x="Acquired.Time", 
+                                                      y="Area",
+                                                      color="Type",
+                                                      shape="Run.Type" ), 
+                         data=data.plot.i ) 
+      
+      plot.i <- plot.i +
+        ggplot2::scale_shape_manual( values=c( LETTERS, letters )[ 1:length( unique( data.plot.i$"Run.Type" ) ) ] )
+      
+    } else {
+      
+      plot.i <- 
+        ggplot2::ggplot( mapping=ggplot2::aes_string( x="Acquired.Time", 
+                                                      y="Area",
+                                                      color="Run.Type",
+                                                      shape="Batch" ), 
+                         data=data.plot.i )
+      
+      plot.i <- plot.i +
+        ggplot2::facet_wrap( facets= ~ Type, nrow=1  ) +
+        ggplot2::scale_shape_manual( values=c( LETTERS, letters )[ 1:length( unique( data.plot.i$"Batch" ) ) ] )
+      
+    }
+    
+    plot.i <- plot.i + 
+      ggplot2::geom_point() + 
+      ggplot2::ggtitle( label=pairs.order[ i ] ) + 
+      ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) ) +
+      ggplot2::scale_color_brewer( palette="Set1", direction=-1 ) +
+      ggplot2::theme( legend.position="top" ) +
+      ggplot2::scale_y_log10()
+    
+    print( plot.i )
+    
+    print( paste( i, pairs.order[ i ] ) )
+    
+  }
+  
+  if ( plot.groups ) {
+  
+    plot.i <- 
+      ggplot2::ggplot( mapping=ggplot2::aes_string( x="Group", y="Area", color="Type" ),
+                       data=data.plot.i )
+    plot.i <- plot.i +
+      ggplot2::geom_boxplot( outlier.color=NA ) + 
+      ggplot2::geom_jitter( width=0.1 ) +
+      ggplot2::ggtitle( label=pairs.order[ i ] ) + 
+      ggplot2::theme( axis.text.x=ggplot2::element_text( angle=45, hjust=1 ) ) +
+      ggplot2::scale_color_brewer( palette="Set1", direction=1 ) +
+      ggplot2::theme( legend.position="top" ) +
+      ggplot2::scale_y_log10()
+    
+    print( plot.i )
+    
+    if ( !is.null( rsds.table ) ) {
+    
+      print( round( x=rsds.table[ i, ], digits=2 ) )
+      
+    }
+    
+  }
+  
+  if ( has.concentrations ) {
+    
+    if ( plot.figures & plot.curves ) {
+    
+      data.plot.i.calibrations <- data.plot.i[ !is.na( data.plot.i$"C.ngml" ), ]
+    
+      if ( plot.signal.and.bg.together ) {
+        
+        plot.i <- 
+          ggplot2::ggplot( mapping=ggplot2::aes_string( x="C.ngml", y="Area", 
+                                                        color="Type", 
+                                                        shape="Linearity.Range" ),
+                           data=data.plot.i.calibrations )
+        
+      } else {
+        
+        plot.i <- 
+          ggplot2::ggplot( mapping=ggplot2::aes_string( x="C.ngml", y="Area", 
+                                                        color="Preparation.Repeat", 
+                                                        shape="Linearity.Range" ),
+                           data=data.plot.i.calibrations )
+        
+        plot.i <- plot.i +
+          ggplot2::facet_wrap( facets= ~ Type, nrow=1  )
+        
+      }
+      
+      plot.i <- plot.i +
+        ggplot2::geom_point() +
+        
+        ggplot2::stat_smooth( method="lm",
+                              mapping=ggplot2::aes_string( linetype="Batch" ) ) +
+        
+        ggplot2::ggtitle( label=pairs.order[ i ] ) + 
+        ggplot2::scale_color_brewer( palette="Set1", direction=1 ) +
+        ggplot2::theme( legend.position="top" ) +
+        ggplot2::scale_y_log10() +
+        ggplot2::scale_x_log10()
+      
+      print( plot.i )
+      
+    }
+    
+    tmp <- ( !is.na( data.plot.i$"C.ngml" ) & data.plot.i$Type=="Signal" )
+    
+    R2.signal <- by( data=data.plot.i[ tmp, ], 
+                     INDICES=data.plot.i$Preparation.Repeat[ tmp ], 
+                     FUN=function( x ) { cor( x=x$Area, 
+                                              y=x$C.ngml,
+                                              use="pairwise.complete.obs" ) } )
+    
+    tmp <- ( !is.na( data.plot.i$"C.ngml" ) & data.plot.i$Type=="Background" )
+    
+    R2.bg <- by( data=data.plot.i[ tmp, ], 
+                 INDICES=data.plot.i$Preparation.Repeat[ tmp ], 
+                 FUN=function( x ) { cor( x=x$Area, 
+                                          y=x$C.ngml,
+                                          use="pairwise.complete.obs" ) } )
+    
+    tmp <- which( data.plot.i$Type=="Signal" & 
+      data.plot.i$"C.ngml" >= data.plot.i$"Linearity range - low concentration" &
+      data.plot.i$"C.ngml" <= data.plot.i$"Linearity range - high concentration" )
+    
+    if ( length( tmp ) > 2 ) {
+      
+      R2.signal.lr <- by( data=data.plot.i[ tmp, ], 
+                          INDICES=data.plot.i$Preparation.Repeat[ tmp ], 
+                          FUN=function( x ) { cor( x=x$Area, 
+                                                   y=x$C.ngml,
+                                                   use="pairwise.complete.obs" ) } )
+      
+      # Calibration
+      
+      calibrations.accepted <- 
+        names( which( c( R2.signal.lr ) > accepted.calibration.Rsq ) )
+      
+      if ( length( calibrations.accepted ) > 0 ) {
+      
+        calibration.curve.i <- 
+          lm( formula=C.ngml ~ Area,
+              data=data.plot.i[ tmp[ data.plot.i[ tmp, "Preparation.Repeat" ] %in%
+                                       calibrations.accepted ], ] )
+        
+        calibrees <- 
+          which( data$"ID" == pairs.order[ i ] &
+                   data$"Run.Type" %in% c( "NIST", "PO", "RPO", "Sample" ) )
+        
+        data[ calibrees, "Concentration" ] <- 
+          predict( object=calibration.curve.i, 
+                   newdata=data[ calibrees, ] )
+        
+      }
+      
+    } else {
+      
+      R2.signal.lr <- NA
+      
+    }
+    
+    tmp <- which( data.plot.i$Type=="Background" & 
+      data.plot.i$"C.ngml" >= data.plot.i$"Linearity range - low concentration" &
+      data.plot.i$"C.ngml" <= data.plot.i$"Linearity range - high concentration" )
+    
+    if ( length( tmp ) > 2 ) {
+    
+      R2.bg.lr <- by( data=data.plot.i[ tmp, ], 
+                      INDICES=data.plot.i$Preparation.Repeat[ tmp ], 
+                      FUN=function( x ) { cor( x=x$Area, 
+                                               y=x$C.ngml,
+                                               use="pairwise.complete.obs" ) } )
+      
+    } else {
+      
+      R2.bg.lr <- NA
+      
+    }
+    
+    R2.table <- t( data.frame( R2.Signal=as.matrix( R2.signal ), 
+                               R2.Background=as.matrix( R2.bg ),
+                               R2.Signal.LR=as.matrix( R2.signal.lr ),
+                               R2.Background.LR=as.matrix( R2.bg.lr ) ) )
+    
+    print( round( x=R2.table, digits=3 ) )
+    
+  }
+  
+}
+
+```
+
+\newpage
+
+# Concentrations
+
+```{r Calibrations, fig.height=15, fig.width=10, out.width="\\textwidth", dpi=600, eval=plot.figures}
+
+if ( has.calibration.curves ) {
+
+  data.plot <- data[ data$"Label Type" == "light" &
+                       data$"Run.Type" %in% 
+                       c( "PO", "RPO", "NIST", "Sample" ), ]
+  
+  data.plot$"ID.sorted" <- 
+    stats::reorder( x=data.plot$"ID", 
+                    X=data.plot$"Concentration", 
+                    FUN=median, na.rm=TRUE )
+  
+  IDs.unique <- unique( data.plot$"ID" )
+  
+  for ( i in 1:length( IDs.unique ) ) {
+    
+    data.plot[ which( data.plot$"ID" == IDs.unique[ i ] )[ -1 ],
+               c( "Linearity range - low concentration",
+                  "Linearity range - high concentration" ) ] <- NA
+    
+  }
+  
+  colnames( data.plot )[ colnames( data.plot ) == 
+                           "Linearity range - low concentration" ] <- 
+    "Linearity.Range.Low"
+  
+  colnames( data.plot )[ colnames( data.plot ) == 
+                           "Linearity range - high concentration" ] <- 
+    "Linearity.Range.High"
+  
+  
+  ggplot2::ggplot( data=data.plot[ data.plot$"Run.Type" == "PO", ], 
+                   mapping=ggplot2::aes( x=ID.sorted, 
+                                         y=Concentration,
+                                         color=Batch ) ) +
+    ggplot2::geom_boxplot() +
+    ggplot2::geom_jitter( width=0.2/length( unique( data.plot$"Batch" ) ), alpha=0.1 ) +
+    ggplot2::scale_y_log10() +
+    ggplot2::coord_flip() +
+    ggplot2::ggtitle( label="POs by Batch" )
+  
+  
+  ggplot2::ggplot( data=data.plot[ data.plot$"Run.Type" == "RPO", ], 
+                   mapping=ggplot2::aes( x=ID.sorted, 
+                                         y=Concentration,
+                                         color=Batch ) ) +
+    ggplot2::geom_boxplot() +
+    ggplot2::geom_jitter( width=0.2/length( unique( data.plot$"Batch" ) ), alpha=0.1 ) +
+    ggplot2::scale_y_log10() +
+    ggplot2::coord_flip() +
+    ggplot2::ggtitle( label="RPOs by Batch" )
+  
+  
+  ggplot2::ggplot( data=data.plot[ data.plot$"Run.Type" == "NIST", ], 
+                   mapping=ggplot2::aes( x=ID.sorted, 
+                                         y=Concentration,
+                                         color=Batch ) ) +
+    ggplot2::geom_boxplot() +
+    ggplot2::geom_jitter( width=0.2/length( unique( data.plot$"Batch" ) ), alpha=0.1 ) +
+    ggplot2::scale_y_log10() +
+    ggplot2::coord_flip() +
+    ggplot2::ggtitle( label="NISTs by Batch" )
+  
+  
+  plot <- 
+    ggplot2::ggplot( data=data.plot[ data.plot$"Run.Type" %in% c( "PO", "RPO", "NIST", "Sample" ), ], 
+                     mapping=ggplot2::aes( x=ID.sorted, 
+                                           y=Concentration,
+                                           color=Run.Type ) )
+  
+  plot <- plot +
+    ggplot2::geom_boxplot() +
+    ggplot2::geom_point( alpha=0.1, 
+                         position=ggplot2::position_jitterdodge( jitter.width=0.1 ) ) +
+    ggplot2::geom_segment( mapping=ggplot2::aes_string( x="ID.sorted", 
+                                                        xend="ID.sorted",
+                                                        y="Linearity.Range.Low",
+                                                        yend="Linearity.Range.High" ), 
+                           color="black" ) +
+    ggplot2::scale_y_log10() + 
+    ggplot2::coord_flip() +
+    ggplot2::ggtitle( label="Samples and QCs" )
+  
+  print( plot )
+  
+  
+  ggplot2::ggplot( data=data.plot[ data.plot$"Run.Type" == "Sample", ], 
+                   mapping=ggplot2::aes( x=ID.sorted, y=Concentration
+                   ) ) +
+    ggplot2::geom_boxplot() +
+    ggplot2::scale_y_log10() +
+    ggplot2::coord_flip() +
+    ggplot2::ggtitle( label="Samples" )
+  
+  
+  ggplot2::ggplot( data=data.plot[ data.plot$"Run.Type" == "Sample", ], 
+                   mapping=ggplot2::aes( x=ID.sorted, y=Concentration,
+                                         color=Batch ) ) +
+    ggplot2::geom_boxplot() +
+    ggplot2::geom_point( alpha=0.1, 
+                         position=ggplot2::position_jitterdodge( jitter.width=0.1 ) ) +
+    ggplot2::scale_y_log10() +
+    ggplot2::coord_flip() +
+    ggplot2::ggtitle( label="Samples by Batch" )
+
+}
+  
+```
+
+\newpage
+
+# Export
+
+```{r Data-Export}
+
+tmp <- stringr::str_split_fixed( string=data$"Replicate.Name", pattern="_", n=7 )
+tmp <- na.omit( object=unique( x=tmp[ , 1 ] ) )
+
+fname.prefix <- ""
+
+if ( length( tmp ) == 1 ) {
+  
+  fname.prefix <- paste( tmp, "--", sep="" )
+  
+}
+
+### Concentrations
+
+data.concentrations <-
+  data[ !is.na( data$"Linearity range - low concentration" ) & !is.na( data$"Linearity range - high concentration" ), ]
+
+data.concentrations.wide <-
+  reshape2::dcast( data = data.concentrations,
+                   formula = Replicate.Name ~ ID,
+                   fun.aggregate = median,
+                   value.var = "Concentration" )
+
+names.mapping <- 
+  data.concentrations[ match( x=colnames( data.concentrations.wide ), 
+                              table=data.concentrations$"ID" ), 
+                       c( "ID", "Full Name" ) ]
+
+colnames( data.concentrations.wide )[ !is.na( names.mapping$"ID" ) ] <- 
+  names.mapping$"Full Name"[ !is.na( names.mapping$"ID" ) ]
+
+tmp <- stringr::str_split_fixed( string=data.concentrations.wide$"Replicate.Name", pattern="_", n=7 )
+
+colnames( tmp ) <- 
+  c( "Project", "Instrument", "Batch", "Run.Number", "Steno.Label", "Preparation.Repeat", "Injection.Repeat" )
+
+data.concentrations.wide <- 
+  data.frame( tmp, 
+              data.concentrations.wide,
+              check.names=FALSE,
+              stringsAsFactors=FALSE )
+
+## QC samples
+
+data.concentrations.export.QCs <- 
+  data.concentrations.wide[ data.concentrations.wide$"Steno.Label" %in% c( "PO", "RPO", "NIST" ), ]
+
+by( data=data.concentrations.export.QCs[ , na.omit( object=names.mapping$"Full Name" ), drop=FALSE ], 
+    INDICES=data.concentrations.export.QCs$"Steno.Label", 
+    FUN=function( x ) { apply( X=x, MAR=2, FUN=sd, na.rm=TRUE ) / colMeans( x=x, na.rm=TRUE ) * 100 } )
+
+write.table( x=data.concentrations.export.QCs, 
+             file=file.path( output.directory, 
+                             paste( fname.prefix, "concentrations--QC_samples.tsv", sep="" ) ),
+             sep="\t",
+             na="",
+             row.names=FALSE,
+             quote=FALSE )
+
+## Study samples
+
+data.concentrations.export.samples <-
+  data.concentrations.wide[ !grepl( x=data.concentrations.wide$"Steno.Label",
+                                    pattern="(Blank)|(CALIBCURVE)|(PO)|(NIST)|(Solvent)",
+                                    ignore.case=TRUE ), ]
+  
+apply( X=data.concentrations.export.samples[ , na.omit( object=names.mapping$"Full Name" ), drop=FALSE ], 
+       MAR=2, 
+       FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) * 100 } )
+
+write.table( x=data.concentrations.export.samples, 
+             file=file.path( output.directory, 
+                             paste( fname.prefix, "concentrations--study_samples.tsv", sep="" ) ),
+             sep="\t",
+             na="",
+             row.names=FALSE,
+             quote=FALSE )
+
+## Study samples and QC samples
+
+data.concentrations.export.all <-
+  data.concentrations.wide[ !grepl( x=data.concentrations.wide$"Steno.Label",
+                                    pattern="(Blank)|(CALIBCURVE)|(Solvent)",
+                                    ignore.case=TRUE ), ]
+  
+write.table( x=data.concentrations.export.all, 
+             file=file.path( output.directory, 
+                             paste( fname.prefix, 
+                                    "concentrations--study_samples_and_QC_samples.tsv", 
+                                    sep="" ) ),
+             sep="\t",
+             na="",
+             row.names=FALSE,
+             quote=FALSE )
+
+### Normalized peak area
+
+data.peak.area <-
+  data[ is.na( data$"Qualifier transition" ) & data$"Label Type" == "light", ]
+  
+data.peak.area.wide <-
+  reshape2::dcast( data = data.peak.area,
+                   formula = Replicate.Name ~ ID,
+                   fun.aggregate = median,
+                   value.var = "Area" )
+
+names.mapping <- 
+  data.peak.area[ match( x=colnames( data.peak.area.wide ), table=data.peak.area$"ID" ), 
+        c( "ID", "Full Name" ) ]
+
+colnames( data.peak.area.wide )[ !is.na( names.mapping$"ID" ) ] <- 
+  names.mapping$"Full Name"[ !is.na( names.mapping$"ID" ) ]
+
+tmp <- stringr::str_split_fixed( string=data.peak.area.wide$"Replicate.Name", pattern="_", n=7 )
+
+colnames( tmp ) <- 
+  c( "Project", "Instrument", "Batch", "Run.Number", "Steno.Label", "Preparation.Repeat", "Injection.Repeat" )
+
+data.peak.area.wide <- 
+  data.frame( tmp, 
+              data.peak.area.wide,
+              check.names=FALSE,
+              stringsAsFactors=FALSE )
+
+## QC samples
+
+data.peak.area.export.QCs <- 
+  data.peak.area.wide[ data.peak.area.wide$"Steno.Label" %in% c( "PO", "RPO", "NIST" ), ]
+
+by( data=data.peak.area.export.QCs[ , na.omit( object=names.mapping$"Full Name" ), drop=FALSE ], 
+    INDICES=data.peak.area.export.QCs$"Steno.Label", 
+    FUN=function( x ) { apply( X=x, MAR=2, FUN=sd, na.rm=TRUE ) / colMeans( x=x, na.rm=TRUE ) * 100 } )
+
+## Study samples
+
+data.peak.area.export.samples <-
+  data.peak.area.wide[ !grepl( x=data.peak.area.wide$"Steno.Label",
+                               pattern="(Blank)|(CALIB)|(PO)|(NIST)|(Solvent)",
+                               ignore.case=TRUE ), ]
+  
+apply( X=data.peak.area.export.samples[ , na.omit( object=names.mapping$"Full Name" ), drop=FALSE ], 
+       MAR=2, 
+       FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) * 100 } )
+
+## Calibration curves
+
+data.peak.area.export.calibcurve <-
+  data.peak.area.wide[ grepl( x=data.peak.area.wide$"Steno.Label",
+                              pattern="CALIB",
+                              ignore.case=TRUE ), ]
+
+if ( !normalize.with.istds ) {
+  
+  ## Blank samples
+
+  data.peak.area.export.blank <-
+    data.peak.area.wide[ grepl( x=data.peak.area.wide$"Steno.Label",
+                                pattern="(Blank)|(Solvent)",
+                                ignore.case=TRUE ), ]
+    
+  write.table( x=data.peak.area.export.QCs, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, "peak_areas--QC_samples.tsv", sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.export.samples, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, "peak_areas--study_samples.tsv", sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.export.samples, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, "peak_areas--calibcurve_samples.tsv", sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.export.blank, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, "peak_areas--blank_samples.tsv", sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.wide, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, "peak_areas--all_samples.tsv", sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+} else {
+
+  ## Study samples, QC samples and calibration curves  
+  
+  data.peak.area.export.all <-
+    data.peak.area.wide[ !grepl( x=data.peak.area.wide$"Steno.Label",
+                                 pattern="(Blank)|(Solvent)",
+                                 ignore.case=TRUE ), ]
+  
+  write.table( x=data.peak.area.export.QCs, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "normalized_peak_areas--QC_samples.tsv", 
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.export.samples, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "normalized_peak_areas--study_samples.tsv", 
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.export.calibcurve, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "normalized_peak_areas--calibcurve_samples.tsv",
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.export.all, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "normalized_peak_areas--study_samples_QC_samples_and_calibcurve_samples.tsv",
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  ### Original peak area
+  
+  data.peak.area.wide.original <-
+    reshape2::dcast( data = data.peak.area,
+                     formula = Replicate.Name ~ ID,
+                     fun.aggregate = median,
+                     value.var = "Area.not.normalized" )
+  
+  names.mapping <- 
+    data.peak.area[ match( x=colnames( data.peak.area.wide.original ), 
+                           table=data.peak.area$"ID" ), 
+                    c( "ID", "Full Name" ) ]
+  
+  colnames( data.peak.area.wide.original )[ !is.na( names.mapping$"ID" ) ] <- 
+    names.mapping$"Full Name"[ !is.na( names.mapping$"ID" ) ]
+  
+  tmp <- 
+    stringr::str_split_fixed( string=data.peak.area.wide.original$"Replicate.Name", 
+                              pattern="_", n=7 )
+  
+  colnames( tmp ) <- 
+    c( "Project", "Instrument", "Batch", "Run.Number", "Steno.Label", "Preparation.Repeat", "Injection.Repeat" )
+  
+  data.peak.area.wide.original <- 
+    data.frame( tmp, 
+                data.peak.area.wide.original,
+                check.names=FALSE,
+                stringsAsFactors=FALSE )
+  
+  ## QC samples
+  
+  data.peak.area.original.export.QCs <- 
+    data.peak.area.wide.original[ data.peak.area.wide.original$"Steno.Label" %in% c( "PO", "RPO", "NIST" ), ]
+  
+  by( data=data.peak.area.original.export.QCs[ , na.omit( object=names.mapping$"Full Name" ), drop=FALSE ], 
+      INDICES=data.peak.area.original.export.QCs$"Steno.Label", 
+      FUN=function( x ) { apply( X=x, MAR=2, FUN=sd, na.rm=TRUE ) / colMeans( x=x, na.rm=TRUE ) * 100 } )
+  
+  ## Study samples
+  
+  data.peak.area.original.export.samples <-
+    data.peak.area.wide.original[ !grepl( x=data.peak.area.wide.original$"Steno.Label",
+                                          pattern="(Blank)|(CALIB)|(PO)|(NIST)|(Solvent)",
+                                          ignore.case=TRUE ), ]
+  
+  apply( X=data.peak.area.original.export.samples[ , na.omit( object=names.mapping$"Full Name" ), drop=FALSE ], 
+         MAR=2, 
+         FUN=function( x ) { sd( x=x, na.rm=TRUE ) / mean( x=x, na.rm=TRUE ) * 100 } )
+  
+  ## Calibration curves
+  
+  data.peak.area.original.export.calibcurve <-
+    data.peak.area.wide.original[ grepl( x=data.peak.area.wide.original$"Steno.Label",
+                                pattern="CALIB",
+                                ignore.case=TRUE ), ]
+
+  ## Blank samples
+
+  data.peak.area.original.export.blank <-
+    data.peak.area.wide.original[ grepl( x=data.peak.area.wide.original$"Steno.Label",
+                                pattern="(Blank)|(Solvent)",
+                                ignore.case=TRUE ), ]
+    
+  write.table( x=data.peak.area.original.export.QCs, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "peak_areas--QC_samples.tsv", 
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.original.export.samples, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "peak_areas--study_samples.tsv", 
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.original.export.calibcurve, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "peak_areas--calibcurve_samples.tsv", 
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.original.export.blank, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "peak_areas--blank_samples.tsv",
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+  write.table( x=data.peak.area.wide.original, 
+               file=file.path( output.directory, 
+                               paste( fname.prefix, 
+                                      "peak_areas--all_samples.tsv",
+                                      sep="" ) ),
+               sep="\t",
+               na="",
+               row.names=FALSE,
+               quote=FALSE )
+  
+}
+
+```
+
+\newpage
+
+# Appendix

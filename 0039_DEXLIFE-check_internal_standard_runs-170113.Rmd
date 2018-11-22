@@ -1,0 +1,218 @@
+---
+title: '0039_DEXLIFE: Pre-Processing'
+author: "Tommi Suvitaival, tsuv0001@regionh.dk, Steno Diabetes Center Copenhagen"
+date: "\\today"
+output: pdf_document
+---
+
+```{r Load-Internal-Standards, echo=FALSE}
+
+write.files <- FALSE
+
+data <- read.csv( "Z:/_Data/LIP1/0039_DEXLIFE/Pre-processing-MZmine/QC/0039_DEXLIFE--standards_runs_targeted_standards-almost_all_peak_data--170112.csv", sep=";", stringsAsFactors=FALSE )
+rownames( data ) <- data[ , "Name" ]
+
+```
+
+```{r Load-Library, echo=FALSE}
+
+MS.Library <- read.delim( file="Z:/_Data/LIP1/0039_DEXLIFE/MS_Library/MS Library - 2016-02-19--copy_for_0039_DEXLIFE-170112--txt_copy-170116.txt", na.strings="", stringsAsFactors=FALSE )
+
+```
+
+```{r Specify-Plot-Markers, echo=FALSE}
+
+print( data[ , "Name" ] )
+
+cols <- 1:nrow( data )
+pchs <- paste( ( 1:nrow( data ) )-1 )
+
+```
+
+# Retention Time as a Function of Running Time
+
+```{r Plot-Standards-RT-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot <- t( data[ , stringr::str_detect( string=colnames( data ), pattern="Peak.RT$" ) ] )
+
+matplot( x=data.plot, col=cols, pch=pchs, xlab="Running order", ylab="RT (min)" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+```{r Table-Stds-RT, echo=FALSE}
+
+knitr::kable( x=as.data.frame( apply( X=data.plot, MAR=2, FUN=median ) ) )
+
+```
+
+```{r Plot-Stds-RT-Abs-Dev-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot.abs.dev <- scale( x=data.plot, center=apply( X=data.plot, MAR=2, FUN=median ), scale=FALSE )
+
+matplot( x=data.plot.abs.dev, col=cols, pch=pchs, xlab="Running order", ylab="Deviation: RT (min)" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+```{r Plot-Stds-RT-Pcnt-Dev-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot.pcnt.dev <- scale( x=data.plot, center=apply( X=data.plot, MAR=2, FUN=median ), scale=apply( X=data.plot, MAR=2, FUN=median ) )*100
+
+matplot( x=data.plot.pcnt.dev, col=cols, pch=pchs, xlab="Running order", ylab="Deviation: RT (%)" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+```{r Match-Stds-RT-v-Library, echo=FALSE}
+
+data.row <- data[ , !stringr::str_detect( string=colnames( data ), pattern="Peak" ) ]
+data.plot <- data.plot[ , colnames( data.plot )!="X" ]
+
+tmp <- merge( x=MS.Library, y=data.row, by="Name" )
+
+RT.lm <- lm( formula=row.retention.time ~ RT, data=tmp )
+
+MS.Library$RT.uncorrected <- MS.Library$"RT"
+MS.Library$"RT" <- predict( object=RT.lm, newdata=MS.Library )
+
+MS.Library.stds.only <- MS.Library[ which( MS.Library$"Note"=="Standard Mix" ), c( "Theoretical.m.z", "RT", "Name" ) ]
+
+MS.Library.written <- MS.Library[ , c( "ID", "Theoretical.m.z", "RT", "Name" ) ]
+
+if ( write.files ) {
+
+  write.table( x=MS.Library.written, file=file.path( "Z:", "_Data", "LIP1", "0039_DEXLIFE", "MS_Library", "MS_Library-0039_DEXLIFE-RT-corrected-170116.csv" ), quote=FALSE, sep=",", na="", dec=".", row.names=FALSE )
+  
+  write.table( x=MS.Library.stds.only, file=file.path( "Z:", "_Data", "LIP1", "0039_DEXLIFE", "MS_Library", "MS_Library-0039_DEXLIFE-RT-corrected-standards_only-170116.csv" ), quote=FALSE, sep=",", na="", dec=".", row.names=FALSE )
+  
+}
+
+```
+
+```{r Plot-Stds-RT-v-Library, echo=FALSE}
+
+plot( x=tmp[ , "RT" ], y=tmp[ , "row.retention.time" ], col=cols, pch=pchs )
+legend( x="topleft", legend=tmp$Name, col=cols, pch=pchs )
+abline( a=0, b=1, col="gray" )
+abline( coef=coef( RT.lm ), lty=2 )
+
+```
+
+# Mass-to-Charge as a Function of Running Time
+
+```{r Plot-Stds-mz-v-Running-Time, echo=FALSE, fig.height=7, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot <- t( data[ , stringr::str_detect( string=colnames( data ), pattern="Peak.m.z$" ) ] )
+data.plot <- data.plot[ , colnames( data.plot )!="X" ]
+
+matplot( x=data.plot, col=cols, pch=pchs, xlab="Running order", ylab="m/z" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+```{r Table-Stds-mz, echo=FALSE}
+
+knitr::kable( x=as.data.frame( apply( X=data.plot, MAR=2, FUN=median ) ) )
+
+```
+
+```{r Plot-Stds-mz-Abs-Dev-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot.abs.dev <- scale( x=data.plot, center=apply( X=data.plot, MAR=2, FUN=median ), scale=FALSE )
+
+matplot( x=data.plot.abs.dev, col=cols, pch=pchs, xlab="Running order", ylab="Deviation: m/z" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+```{r Plot-Stds-mz-ppm-Dev-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot.pcnt.dev <- scale( x=data.plot, center=apply( X=data.plot, MAR=2, FUN=median ), scale=apply( X=data.plot, MAR=2, FUN=median ) )*1e6
+
+matplot( x=data.plot.pcnt.dev, col=cols, pch=pchs, xlab="Running order", ylab="Deviation: m/z (ppm)" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+# Peak Area
+
+```{r Plot-Stds-Peak-Area-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot <- t( data[ , stringr::str_detect( string=colnames( data ), pattern="Peak.area$" ) ] )
+
+matplot( x=data.plot, col=cols, pch=pchs, xlab="Running order", ylab="Peak Area" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+```{r Table-Stds-Peak-Area, echo=FALSE}
+
+knitr::kable( x=as.data.frame( apply( X=data.plot, MAR=2, FUN=median ) ) )
+
+```
+
+```{r Plot-Stds-Peak-Area-Abs-Dev-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot.abs.dev <- scale( x=data.plot, center=apply( X=data.plot, MAR=2, FUN=median ), scale=FALSE )
+
+matplot( x=data.plot.abs.dev, col=cols, pch=pchs, xlab="Running order", ylab="Deviation: Peak Area" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+```{r Plot-Stds-Peak-Area-Pcnt-Dev-v-Running-Time, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot.pcnt.dev <- scale( x=data.plot, center=apply( X=data.plot, MAR=2, FUN=median ), scale=apply( X=data.plot, MAR=2, FUN=median ) )*100
+
+matplot( x=data.plot.pcnt.dev, col=cols, pch=pchs, xlab="Running order", ylab="Deviation: Peak Area (%)" )
+legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
+
+# Batch-Wise Retention Time
+
+```{r Detect-Batches, echo=FALSE}
+
+columns.samples <- stringr::str_detect( string=colnames( data ), pattern="Peak.RT$" )
+
+batch.string <- sapply( X=stringr::str_split( string=colnames( data )[ columns.samples ], pattern="_" ), FUN=function( x ) { x[[ 3 ]] } )
+
+batch.string <- as.factor( batch.string )
+
+cols = as.numeric( batch.string )
+
+```
+
+```{r Plot-Standards-RT-v-Running-Time-Batches, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+data.plot <- t( data[ , columns.samples ] )
+
+# matplot( x=data.plot, col=cols, pch=pchs, xlab="Running order", ylab="RT (min)" )
+
+plot( data.plot[ , 1 ], col=cols, pch="0", ylim=c( 0, max( data.plot ) ) )
+
+for ( i in 2:ncol( data.plot ) ) {
+  
+  points( data.plot[ , i ], col=cols, pch=paste( i-1 ) )
+  
+}
+
+legend( x="top", legend=colnames( data.plot ), col=unique( cols ), pch=paste( ( 0:nrow( data.plot ) )-1 ) )
+
+```
+
+```{r Table-Stds-RT-Batches, echo=FALSE}
+
+# knitr::kable( x=as.data.frame( apply( X=data.plot, MAR=2, FUN=median ) ) )
+
+```
+
+```{r Plot-Stds-RT-Abs-Dev-v-Running-Time-Batches, echo=FALSE, fig.height=7, out.width="0.9\\textwidth"}
+
+# data.plot.abs.dev <- scale( x=data.plot, center=apply( X=data.plot, MAR=2, FUN=median ), scale=FALSE )
+# 
+# matplot( x=data.plot.abs.dev, col=cols, pch=pchs, xlab="Running order", ylab="Deviation: RT (min)" )
+# legend( x="top", legend=colnames( data.plot ), col=cols, pch=pchs )
+
+```
